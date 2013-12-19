@@ -7,15 +7,15 @@ module VCSToolkit
       raise 'The ObjectManager class should be inherited and its methods overriden'
     end
 
-    def store(id)
+    def store(object_id)
       raise 'You must implement ObjectManager#store'
     end
 
-    def retrieve(id)
+    def retrieve(object_id)
       raise 'You must implement ObjectManager#retrieve'
     end
 
-    def include?(id)
+    def include?(object_id)
       raise 'You must implement ObjectManager#include?'
     end
   end
