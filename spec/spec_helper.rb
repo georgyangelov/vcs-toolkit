@@ -1,5 +1,7 @@
 require 'vcs_toolkit'
 
 RSpec.configure do |config|
-	# Use defaults for now
+  config.expect_with :rspec do |expect_config|
+    expect_config.syntax = :expect
+  end
 end
