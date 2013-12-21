@@ -14,6 +14,8 @@ Gem::Specification.new do |spec|
   spec.description = "Allows easy to use platform for building a Version Control System. It's a proof-of-concept that VCS systems such as Git are simple in their implementation"
   spec.license     = "MIT"
 
+  spec.add_runtime_dependency "diff-lcs"
+
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
 
