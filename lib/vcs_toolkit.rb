@@ -1,4 +1,4 @@
-require 'vcs_toolkit/object_loader'
+require 'vcs_toolkit/version'
 
 module VCSToolkit
 
