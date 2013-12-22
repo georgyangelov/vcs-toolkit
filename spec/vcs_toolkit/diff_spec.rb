@@ -65,4 +65,34 @@ describe VCSToolkit::Diff do
     end
   end
 
+  describe '#to_s' do
+    context 'with no changes' do
+      subject { diff_without_changes.to_s }
+      it      { should eq 'abcd' }
+    end
+
+    context 'with addition' do
+      subject { diff_with_addition.to_s }
+      it      { should eq 'abcd+e' }
+    end
+
+    context 'with removal' do
+      subject { diff_with_removal.to_s }
+      it      { should eq 'ab-cd' }
+    end
+
+    context 'with changes' do
+      subject { diff_with_changes.to_s }
+      it      { should eq 'a-b+ccd' }
+    end
+
+    it 'should keep newlines intact' do
+      file_one = "one\ntwo\nthree\nfour\n".lines
+      file_two = "one\ntwo!\nthree :)\nfour\nfive...\n".lines
+      diff     = described_class.new(file_one, file_two).to_s
+
+      expect(diff).to eq "one\n-two\n+two!\n-three\n+three :)\nfour\n+five...\n"
+    end
+  end
+
 end
