@@ -33,6 +33,7 @@ module VCSToolkit
       # because any additions on a file will increase new_position
       # and because of that it will cause conflicts even
       # if the changes are the same
+      changeset_one.size == changeset_two.size and
       changeset_one.zip(changeset_two).all? do |change_one, change_two|
         change_one.action       == change_two.action       and
         change_one.old_position == change_two.old_position and
