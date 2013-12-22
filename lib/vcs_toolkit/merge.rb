@@ -10,8 +10,8 @@ module VCSToolkit
       diff_one = Diff.from_sequences(sequence_one, sequence_two)
       diff_two = Diff.from_sequences(sequence_one, sequence_three)
 
-      combined_diff = combine_diffs diff_one, diff_two
-      merge_diff = combined_diff.flat_map do |line_number, (changeset_one, changeset_two)|
+      combined_changes = combine_diffs diff_one, diff_two
+      merge_changes = combined_changes.flat_map do |line_number, (changeset_one, changeset_two)|
         if changeset_one.all?(&:unchanged?)
           changeset_two
         elsif changeset_two.all?(&:unchanged?)
@@ -21,19 +21,22 @@ module VCSToolkit
         end
       end
 
-      Diff.new merge_diff
+      Diff.new merge_changes
     end
 
     private
 
     ##
-    # Group diff lines like this:
-    # {
-    #   <line_number_on_ancestor> => [
-    #     [ <change>, ... ], # The changes in the first file
-    #     [ <change>, ... ]  # The changes in the second file
-    #   ]
-    # }
+    # Group changes by their old index.
+    #
+    # The structure is as follows:
+    #
+    #   {
+    #     <line_number_on_ancestor> => [
+    #       [ <change>, ... ], # The changes in the first file
+    #       [ <change>, ... ]  # The changes in the second file
+    #     ]
+    #   }
     def combine_diffs(diff_one, diff_two)
       Hash.new { |hash, key| hash[key] = [[], []] }.tap do |combined_diff|
         diff_one.each do |change|
