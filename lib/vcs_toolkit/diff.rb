@@ -2,8 +2,8 @@ module VCSToolkit
   class Diff
     include Enumerable
 
-    def initialize(sequence_one, sequence_two)
-      @changes = ::Diff::LCS.sdiff(sequence_one, sequence_two)
+    def initialize(changes)
+      @changes = changes
     end
 
     def has_changes?
@@ -28,6 +28,10 @@ module VCSToolkit
           raise "Unknown change in the diff #{change.action}"
         end
       end.join ''
+    end
+
+    def self.from_sequences(sequence_one, sequence_two)
+      new ::Diff::LCS.sdiff(sequence_one, sequence_two)
     end
   end
 end

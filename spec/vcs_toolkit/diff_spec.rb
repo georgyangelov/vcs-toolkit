@@ -3,7 +3,7 @@ require 'spec_helper'
 describe VCSToolkit::Diff do
 
   describe 'instance' do
-    subject { described_class.new(%w(a b c d), %w(a b d e)) }
+    subject { described_class.from_sequences(%w(a b c d), %w(a b d e)) }
 
     it { should be_a_kind_of Enumerable  }
 
@@ -12,10 +12,10 @@ describe VCSToolkit::Diff do
     it { should respond_to :to_s         }
   end
 
-  let(:diff_with_addition)   { described_class.new(%w(a b c d), %w(a b c d e)) }
-  let(:diff_with_removal)    { described_class.new(%w(a b c d), %w(a b d))     }
-  let(:diff_with_changes)    { described_class.new(%w(a b c d), %w(a c c d))   }
-  let(:diff_without_changes) { described_class.new(%w(a b c d), %w(a b c d))   }
+  let(:diff_with_addition)   { described_class.from_sequences(%w(a b c d), %w(a b c d e)) }
+  let(:diff_with_removal)    { described_class.from_sequences(%w(a b c d), %w(a b d))     }
+  let(:diff_with_changes)    { described_class.from_sequences(%w(a b c d), %w(a c c d))   }
+  let(:diff_without_changes) { described_class.from_sequences(%w(a b c d), %w(a b c d))   }
 
   describe '#has_changes?' do
     context 'with no changes' do
@@ -89,7 +89,7 @@ describe VCSToolkit::Diff do
     it 'should keep newlines intact' do
       file_one = "one\ntwo\nthree\nfour\n".lines
       file_two = "one\ntwo!\nthree :)\nfour\nfive...\n".lines
-      diff     = described_class.new(file_one, file_two).to_s
+      diff     = described_class.from_sequences(file_one, file_two).to_s
 
       expect(diff).to eq "one\n-two\n+two!\n-three\n+three :)\nfour\n+five...\n"
     end
