@@ -47,5 +47,17 @@ describe VCSToolkit::Merge do
         end
       end
     end
+
+    context 'with conflict with a common addition' do
+      subject { described_class.three_way(%w(a b c d), %w(a m e b c d), %w(a m f b c d)) }
+
+      it 'detects the conflict' do
+        should be_any { |change| change.is_a? VCSToolkit::Conflict }
+      end
+
+      it 'properly extracts the common addition' do
+        should be_any { |change| change.adding? }
+      end
+    end
   end
 end

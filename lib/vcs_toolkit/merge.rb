@@ -19,7 +19,7 @@ module VCSToolkit
           # TODO: Check if they can be the same but one is split in two parts
           changeset_one
         else
-          Conflict.new Diff.new(changeset_one), Diff.new(changeset_two)
+          extract_conflict(changeset_one, changeset_two)
         end
       end
 
@@ -28,18 +28,33 @@ module VCSToolkit
 
     private
 
+    def extract_conflict(changeset_one, changeset_two)
+      common_start = changeset_one.zip(changeset_two).take_while do |change_one, change_two|
+        same_change(change_one, change_two)
+      end
+
+      diff_one = Diff.new changeset_one.drop(common_start.size)
+      diff_two = Diff.new changeset_two.drop(common_start.size)
+
+      common_start.map(&:first) + [Conflict.new(diff_one, diff_two)]
+    end
+
     def same_changes(changeset_one, changeset_two)
+      changeset_one.size == changeset_two.size and
+      changeset_one.zip(changeset_two).all? do |change_one, change_two|
+        same_change(change_one, change_two)
+      end
+    end
+
+    def same_change(change_one, change_two)
       # new_position is not compared deliberately
       # because any additions on a file will increase new_position
       # and because of that it will cause conflicts even
       # if the changes are the same
-      changeset_one.size == changeset_two.size and
-      changeset_one.zip(changeset_two).all? do |change_one, change_two|
-        change_one.action       == change_two.action       and
-        change_one.old_position == change_two.old_position and
-        change_one.old_element  == change_two.old_element  and
-        change_one.new_element  == change_two.new_element
-      end
+      change_one.action       == change_two.action       and
+      change_one.old_position == change_two.old_position and
+      change_one.old_element  == change_two.old_element  and
+      change_one.new_element  == change_two.new_element
     end
 
     ##
