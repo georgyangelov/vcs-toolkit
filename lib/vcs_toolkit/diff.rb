@@ -1,3 +1,5 @@
+require 'diff-lcs'
+
 module VCSToolkit
   class Diff
     include Enumerable
