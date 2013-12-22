@@ -14,11 +14,37 @@ describe VCSToolkit::Merge do
       end
     end
 
-    context 'with conflicts' do
-      let(:change_conflict_diff) { described_class.three_way(%w(a b c d), %w(a f c d), %w(a e c d)) }
+    context 'with different conflicting changes' do
+      subject { described_class.three_way(%w(a b c d), %w(a f c d), %w(a e c d)) }
 
       it 'detects conflicts' do
-        expect(change_conflict_diff).to be_any { |change| change.is_a? VCSToolkit::Conflict }
+        should be_any { |change| change.is_a? VCSToolkit::Conflict }
+      end
+    end
+
+    context 'with the same' do
+      context 'change' do
+        subject { described_class.three_way(%w(a b c d), %w(a b e d), %w(a b e d)) }
+
+        it 'merges without conflicts' do
+          should be_none { |change| change.is_a? VCSToolkit::Conflict }
+        end
+      end
+
+      context 'addition' do
+        subject { described_class.three_way(%w(a b c d), %w(a b c d e), %w(a l b c d e)) }
+
+        it 'merges without conflicts' do
+          should be_none { |change| change.is_a? VCSToolkit::Conflict }
+        end
+      end
+
+      context 'deletion' do
+        subject { described_class.three_way(%w(a b c d), %w(a l b d), %w(a b d)) }
+
+        it 'merges without conflicts' do
+          should be_none { |change| change.is_a? VCSToolkit::Conflict }
+        end
       end
     end
   end
