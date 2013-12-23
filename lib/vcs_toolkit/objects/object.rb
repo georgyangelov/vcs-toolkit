@@ -12,6 +12,16 @@ module VCSToolkit
       def named?
         @named
       end
+
+      def ==(other)
+        object_id == other.object_id
+      end
+
+      alias_method :eql?, :==
+
+      def hash
+        object_id.hash
+      end
     end
 
     module HashableObject

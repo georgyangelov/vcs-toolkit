@@ -26,4 +26,20 @@ describe VCSToolkit::Objects::Object do
     end
   end
 
+  it 'should equal other objects with the same object_id' do
+    object_one = described_class.new :object_id_one
+    object_two = described_class.new :object_id_one
+
+    expect(object_one).to eq  object_two
+    expect(object_one).to eql object_two
+  end
+
+  it 'should not equal objects with different object_id' do
+    object_one = described_class.new :object_id_one
+    object_two = described_class.new :object_id_two
+
+    expect(object_one).to_not eq  object_two
+    expect(object_one).to_not eql object_two
+  end
+
 end
