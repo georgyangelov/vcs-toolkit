@@ -28,15 +28,27 @@ module VCSToolkit
 
     private
 
+    ##
+    # Return common prefix and suffix of the two changesets
+    # in the following format:
+    #
+    #  [<common_prefix_list>, Conflict(Diff, Diff), <common_suffix_list>]
+    #
     def extract_conflict(changeset_one, changeset_two)
       common_start = changeset_one.zip(changeset_two).take_while do |change_one, change_two|
         same_change(change_one, change_two)
       end
 
-      diff_one = Diff.new changeset_one.drop(common_start.size)
-      diff_two = Diff.new changeset_two.drop(common_start.size)
+      common_end = changeset_one.reverse.zip(changeset_two.reverse).take_while do |change_one, change_two|
+        same_change(change_one, change_two)
+      end
 
-      common_start.map(&:first) + [Conflict.new(diff_one, diff_two)]
+      common_size = common_end.size + common_start.size
+
+      diff_one = Diff.new changeset_one.slice(common_start.size, changeset_one.size - common_size)
+      diff_two = Diff.new changeset_two.slice(common_start.size, changeset_two.size - common_size)
+
+      common_start.map(&:first) + [Conflict.new(diff_one, diff_two)] + common_end.map(&:first)
     end
 
     def same_changes(changeset_one, changeset_two)

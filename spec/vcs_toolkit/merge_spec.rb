@@ -48,15 +48,27 @@ describe VCSToolkit::Merge do
       end
     end
 
-    context 'with conflict with a common addition' do
-      subject { described_class.three_way(%w(a b c d), %w(a m e b c d), %w(a m f b c d)) }
+    context 'with conflict with common additions' do
+      subject { described_class.three_way(%w(a b c d), %w(a m e f b c d), %w(a m f f b c d)) }
 
       it 'detects the conflict' do
-        should be_any { |change| change.is_a? VCSToolkit::Conflict }
+        should be_any { |change| change.conflict? }
       end
 
-      it 'properly extracts the common addition' do
-        should be_any { |change| change.adding? }
+      it 'properly extracts the common additions' do
+        expect(subject.select { |change| change.adding? }).to have(2).items
+      end
+    end
+
+    context 'with conflict with a common non-change' do
+      subject { described_class.three_way(%w(a b c d), %w(a e b c d), %w(a f b c d)) }
+
+      it 'detects the conflict' do
+        should be_any { |change| change.conflict? }
+      end
+
+      it 'properly extracts the common non-change' do
+        should have(5).items
       end
     end
   end
