@@ -6,10 +6,9 @@ describe VCSToolkit::Objects::Commit do
   let(:parent)  { 'parent_commit_id'  }
   let(:author)  { 'Chuck Norris'      }
   let(:message) { 'Bring world peace' }
+  let(:date)    { Date.new            }
 
-  let(:commit_id) { '7044ef26b9f7e16ad4d6c9160ea427dc28997d76' }
-
-  let(:commit) { described_class.new message, tree, parent, author }
+  let(:commit) { described_class.new message, tree, parent, author, date }
 
   context 'interface' do
     it 'has message getter' do
@@ -28,6 +27,10 @@ describe VCSToolkit::Objects::Commit do
       expect(commit.author).to eq author
     end
 
+    it 'has date getter' do
+      expect(commit.date).to eq date
+    end
+
     it 'is not named' do
       expect(commit.named?).to eq false
     end
@@ -39,12 +42,14 @@ describe VCSToolkit::Objects::Commit do
     end
 
     it 'has a default object_id of the commit content hash' do
-      expect(commit.object_id).to eq commit_id
+      other_commit = described_class.new message, tree, parent, author, date
+
+      expect(commit.object_id).to eq other_commit.object_id
     end
   end
 
   context 'with valid explicit object_id' do
-    subject { described_class.new message, tree, parent, author, object_id: commit.object_id }
+    subject { described_class.new message, tree, parent, author, date, object_id: commit.object_id }
 
     it 'does not raise an error' do
       expect { subject }.to_not raise_error
@@ -52,7 +57,7 @@ describe VCSToolkit::Objects::Commit do
   end
 
   context 'with invalid explicit object_id' do
-    subject { described_class.new message, tree, parent, author, object_id: '1234' }
+    subject { described_class.new message, tree, parent, author, date, object_id: '1234' }
 
     it 'raises an InvalidObjectError' do
       expect { subject }.to raise_error(VCSToolkit::InvalidObjectError)

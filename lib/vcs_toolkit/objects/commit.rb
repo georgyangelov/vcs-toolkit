@@ -4,13 +4,14 @@ module VCSToolkit
     class Commit < Object
       include HashableObject
 
-      attr_reader :message, :tree, :parent, :author
+      attr_reader :message, :tree, :parent, :author, :date
 
-      def initialize(message, tree, parent, author, object_id: nil)
+      def initialize(message, tree, parent, author, date, object_id: nil)
         @message = message
         @tree    = tree
         @parent  = parent
         @author  = author
+        @date    = date
 
         if object_id
           super object_id
@@ -23,7 +24,7 @@ module VCSToolkit
       protected
 
       def generate_id
-        Digest::SHA1.hexdigest [@message, @tree, @parent, @author].inspect
+        Digest::SHA1.hexdigest [@message, @tree, @parent, @author, @date].inspect
       end
     end
 
