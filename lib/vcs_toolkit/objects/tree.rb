@@ -26,7 +26,7 @@ module VCSToolkit
       protected
 
       def generate_id
-        Digest::SHA1.hexdigest((@files + @trees).to_s)
+        Digest::SHA1.hexdigest [@files, @trees].inspect
       end
     end
   end

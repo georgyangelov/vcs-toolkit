@@ -2,42 +2,41 @@ require 'spec_helper'
 
 describe VCSToolkit::Objects::Tree do
 
-  let(:files)     { %w(file_id_1 file_id_2) }
-  let(:trees)     { %w(tree_id_1 tree_id_2) }
-  let(:tree_hash) { '1755a5da157dab776abbbf034513943b9d7e1916' }
+  let(:files)     { {'README.md' => '1234', 'Rakefile' => '2345'} }
+  let(:trees)     { {'lib' => '3456', 'spec' => '4567'}           }
+
+  let(:tree) { described_class.new files, trees }
 
   context 'interface' do
-    subject { described_class.new files, trees }
-
     it 'has files getter' do
-      expect(subject.files).to eq files
+      expect(tree.files).to eq files
     end
 
     it 'has trees getter' do
-      expect(subject.trees).to eq trees
+      expect(tree.trees).to eq trees
     end
   end
 
   context 'without explicit object_id' do
-    subject { described_class.new files, trees }
-
     it 'has a generated object_id' do
-      should respond_to :object_id
+      expect(tree).to respond_to :object_id
     end
 
     it 'is not named' do
-      expect(subject.named?).to eq false
+      expect(tree.named?).to eq false
     end
 
     it 'has a default object_id of the tree content hash' do
-      expect(subject.object_id).to eq tree_hash
+      other_tree = described_class.new files, trees
+
+      expect(other_tree.object_id).to eq tree.object_id
     end
   end
 
   context 'with valid explicit object_id' do
-    subject { described_class.new files, trees, object_id: tree_hash }
+    subject { described_class.new files, trees, object_id: tree.object_id }
 
-    it 'doesn\'t raise an error' do
+    it 'does not raise an error' do
       expect { subject }.to_not raise_error
     end
   end
