@@ -8,7 +8,7 @@ module VCSToolkit
 
       def initialize(object_id, content)
         super(object_id)
-        
+
         @content = content
       end
     end

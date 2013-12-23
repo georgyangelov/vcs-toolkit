@@ -38,7 +38,7 @@ module VCSToolkit
 
     ##
     # Implement this to enumerate over all objects that
-    # have Object#enumerable? set to true.
+    # have Object#named? set to true.
     # Even enumeration of all objects is possible, but is not
     # neccessary.
     #
