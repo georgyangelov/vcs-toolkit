@@ -15,11 +15,14 @@ module VCSToolkit
     end
 
     module HashableObject
+
+      protected
+
       def generate_id
         raise NotImplementedError
       end
 
-      def object_id_correct
+      def id_valid?
         @object_id == generate_id
       end
     end

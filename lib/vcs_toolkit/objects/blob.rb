@@ -23,7 +23,7 @@ module VCSToolkit
 
         if object_id
           super object_id
-          raise InvalidObjectError unless object_id_correct
+          raise InvalidObjectError unless id_valid?
         else
           super generate_id
         end
