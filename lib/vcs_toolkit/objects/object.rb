@@ -14,5 +14,15 @@ module VCSToolkit
       end
     end
 
+    module HashableObject
+      def generate_id
+        raise NotImplementedError
+      end
+
+      def object_id_correct
+        @object_id == generate_id
+      end
+    end
+
   end
 end
