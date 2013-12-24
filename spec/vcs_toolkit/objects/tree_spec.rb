@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe VCSToolkit::Objects::Tree do
 
-  let(:files)     { {'README.md' => '1234', 'Rakefile' => '2345'} }
-  let(:trees)     { {'lib' => '3456', 'spec' => '4567'}           }
+  let(:files)           { {'README.md' => '1234', 'Rakefile' => '2345'} }
+  let(:trees)           { {'lib' => '3456', 'spec' => '4567'}           }
+
+  let(:files_reordered) { {'Rakefile' => '2345', 'README.md' => '1234'} }
+  let(:trees_reordered) { {'spec' => '4567', 'lib' => '3456'}           }
 
   let(:tree) { described_class.new files, trees }
 
@@ -38,6 +41,14 @@ describe VCSToolkit::Objects::Tree do
 
     it 'does not raise an error' do
       expect { subject }.to_not raise_error
+    end
+  end
+
+  context 'with reordered files and trees' do
+    subject { described_class.new files_reordered, trees_reordered }
+
+    it 'has the same object_id' do
+      expect(subject.object_id).to eq tree.object_id
     end
   end
 
