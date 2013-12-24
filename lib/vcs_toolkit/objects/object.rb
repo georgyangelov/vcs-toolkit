@@ -4,7 +4,7 @@ module VCSToolkit
     class Object
       attr_reader :object_id
 
-      def initialize(object_id, named: false)
+      def initialize(object_id, named: false, **context)
         @object_id = object_id
         @named = named
       end

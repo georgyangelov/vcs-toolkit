@@ -18,14 +18,14 @@ module VCSToolkit
 
       attr_reader :content
 
-      def initialize(content, object_id: nil)
+      def initialize(content, object_id: nil, **context)
         @content = content
 
         if object_id
-          super object_id
+          super object_id, **context
           raise InvalidObjectError unless id_valid?
         else
-          super generate_id
+          super generate_id, **context
         end
       end
 

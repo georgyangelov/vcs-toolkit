@@ -6,7 +6,7 @@ module VCSToolkit
 
       attr_reader :message, :tree, :parent, :author, :date
 
-      def initialize(message, tree, parent, author, date, object_id: nil)
+      def initialize(message, tree, parent, author, date, object_id: nil, **context)
         @message = message
         @tree    = tree
         @parent  = parent
@@ -14,10 +14,10 @@ module VCSToolkit
         @date    = date
 
         if object_id
-          super object_id
+          super object_id, **context
           raise InvalidObjectError unless id_valid?
         else
-          super generate_id
+          super generate_id, **context
         end
       end
 

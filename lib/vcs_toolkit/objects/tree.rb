@@ -11,15 +11,15 @@ module VCSToolkit
 
       attr_reader :files, :trees
 
-      def initialize(files, trees, object_id: nil)
+      def initialize(files, trees, object_id: nil, **context)
         @files = files
         @trees = trees
 
         if object_id
-          super object_id
+          super object_id, **context
           raise InvalidObjectError unless id_valid?
         else
-          super generate_id
+          super generate_id, **context
         end
       end
 

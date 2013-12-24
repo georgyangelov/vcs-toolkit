@@ -4,9 +4,9 @@ module VCSToolkit
     class Label < Object
       attr_reader :reference_id
 
-      def initialize(name, reference_id)
+      def initialize(name, reference_id, **context)
         @reference_id = reference_id
-        super name, named: true
+        super name, named: true, **context
       end
 
       def ==(other)
