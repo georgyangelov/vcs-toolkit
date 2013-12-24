@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe VCSToolkit::ObjectManager do
+describe VCSToolkit::ObjectStore do
 
-  subject { VCSToolkit::ObjectManager.new }
+  subject { VCSToolkit::ObjectStore.new }
 
   it { should respond_to :key?  }
   it { should respond_to :fetch }

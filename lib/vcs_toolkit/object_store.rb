@@ -8,7 +8,7 @@ module VCSToolkit
   # The methods are compatible with the interface of Hash so that
   # a simple Hash can be used instead of a full-featured object manager.
   #
-  class ObjectManager
+  class ObjectStore
     include Enumerable
 
     ##
@@ -17,7 +17,7 @@ module VCSToolkit
     # object_id is here for compatibility with Hash
     #
     def store(object_id, object)
-      raise NotImplementedError, 'You must implement ObjectManager#store'
+      raise NotImplementedError, 'You must implement ObjectStorage#store'
     end
 
     ##
@@ -26,14 +26,14 @@ module VCSToolkit
     # object class (or a subclass of it).
     #
     def fetch(object_id)
-      raise NotImplementedError, 'You must implement ObjectManager#fetch'
+      raise NotImplementedError, 'You must implement ObjectStorage#fetch'
     end
 
     ##
     # Implement this to detect wether a object with that object_id exists.
     #
     def key?(object_id)
-      raise NotImplementedError, 'You must implement ObjectManager#key?'
+      raise NotImplementedError, 'You must implement ObjectStorage#key?'
     end
 
     ##
@@ -45,7 +45,7 @@ module VCSToolkit
     # The order of enumeration doesn't matter.
     #
     def each
-      raise NotImplementedError, 'You must implement ObjectManager#each'
+      raise NotImplementedError, 'You must implement ObjectStorage#each'
     end
   end
 end
