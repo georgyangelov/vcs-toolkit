@@ -9,4 +9,4 @@ require 'vcs_toolkit/objects'
 require 'vcs_toolkit/object_store'
 require 'vcs_toolkit/file_store'
 
-require 'vcs_toolkit/vcs'
+require 'vcs_toolkit/repository'
