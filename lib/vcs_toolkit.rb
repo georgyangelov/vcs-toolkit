@@ -4,9 +4,9 @@ require 'vcs_toolkit/exceptions'
 require 'vcs_toolkit/diff'
 require 'vcs_toolkit/conflict'
 require 'vcs_toolkit/merge'
-require 'vcs_toolkit/object_store'
 require 'vcs_toolkit/objects'
 
-module VCSToolkit
+require 'vcs_toolkit/object_store'
+require 'vcs_toolkit/file_store'
 
-end
+require 'vcs_toolkit/vcs'
