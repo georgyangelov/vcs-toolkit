@@ -29,7 +29,7 @@ module VCSToolkit
         end
       end
 
-      protected
+      private
 
       def generate_id
         Digest::SHA1.hexdigest(@content)

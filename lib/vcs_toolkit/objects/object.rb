@@ -26,7 +26,7 @@ module VCSToolkit
 
     module HashableObject
 
-      protected
+      private
 
       def generate_id
         raise NotImplementedError

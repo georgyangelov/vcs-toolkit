@@ -21,7 +21,7 @@ module VCSToolkit
         end
       end
 
-      protected
+      private
 
       def generate_id
         Digest::SHA1.hexdigest [@message, @tree, @parent, @author, @date].inspect
