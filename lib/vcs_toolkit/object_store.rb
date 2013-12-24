@@ -17,7 +17,7 @@ module VCSToolkit
     # object_id is here for compatibility with Hash
     #
     def store(object_id, object)
-      raise NotImplementedError, 'You must implement ObjectStorage#store'
+      raise NotImplementedError, 'You must implement ObjectStore#store'
     end
 
     ##
@@ -26,14 +26,14 @@ module VCSToolkit
     # object class (or a subclass of it).
     #
     def fetch(object_id)
-      raise NotImplementedError, 'You must implement ObjectStorage#fetch'
+      raise NotImplementedError, 'You must implement ObjectStore#fetch'
     end
 
     ##
     # Implement this to detect wether a object with that object_id exists.
     #
     def key?(object_id)
-      raise NotImplementedError, 'You must implement ObjectStorage#key?'
+      raise NotImplementedError, 'You must implement ObjectStore#key?'
     end
 
     ##
@@ -45,7 +45,7 @@ module VCSToolkit
     # The order of enumeration doesn't matter.
     #
     def each
-      raise NotImplementedError, 'You must implement ObjectStorage#each'
+      raise NotImplementedError, 'You must implement ObjectStore#each'
     end
   end
 end
