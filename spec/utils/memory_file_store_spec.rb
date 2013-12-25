@@ -4,8 +4,8 @@ describe VCSToolkit::Utils::MemoryFileStore do
 
   let(:files) do
     {
-      'README.md' => 'This is a readme file',
-      'lib/vcs_toolkit.rb' => 'require ...',
+      'README.md'                             => 'This is a readme file',
+      'lib/vcs_toolkit.rb'                    => 'require ...',
       'lib/vcs_toolkit/utils/memory_store.rb' => 'class MemoryStore',
       'lib/vcs_toolkit/utils/object_store.rb' => 'class ObjectStore',
       'lib/vcs_toolkit/objects/object.rb'     => 'class Object',
@@ -63,24 +63,24 @@ describe VCSToolkit::Utils::MemoryFileStore do
   end
 
   it 'can iterate over files' do
-    expect(subject.files.to_a).to eq [
-      ['README.md', files['README.md']]
+    expect(subject.files.to_a).to match_array [
+      'README.md',
     ]
   end
 
   it 'can iterate over files in inner directories' do
-    expect(subject.files('lib/vcs_toolkit/utils/').to_a).to eq [
-      ['memory_store.rb', 'class MemoryStore'],
-      ['object_store.rb', 'class ObjectStore'],
+    expect(subject.files('lib/vcs_toolkit/utils/').to_a).to match_array [
+      'memory_store.rb',
+      'object_store.rb',
     ]
   end
 
   it 'can iterate over directories' do
-    expect(subject.directories.to_a).to eq %w(lib)
+    expect(subject.directories.to_a).to match_array %w(lib)
   end
 
   it 'can iterate over directories in inner directories' do
-    expect(subject.directories('lib/vcs_toolkit').to_a).to eq %w(utils objects)
+    expect(subject.directories('lib/vcs_toolkit').to_a).to match_array %w(utils objects)
   end
 
 end

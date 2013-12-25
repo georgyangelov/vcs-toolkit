@@ -3,8 +3,8 @@ require 'spec_helper'
 describe VCSToolkit::Repository do
 
   let(:object_store) { {} }
-  let(:working_dir)  { {} }
-  let(:staging_area) { {} }
+  let(:working_dir)  { VCSToolkit::Utils::MemoryFileStore.new }
+  let(:staging_area) { VCSToolkit::Utils::MemoryFileStore.new }
 
   subject(:repo) { VCSToolkit::Repository.new object_store, working_dir, staging_area: staging_area }
 
@@ -25,6 +25,90 @@ describe VCSToolkit::Repository do
     expect(repo.blob_class).to   be VCSToolkit::Objects::Blob
     expect(repo.label_class).to  be VCSToolkit::Objects::Label
     expect(repo.commit_class).to be VCSToolkit::Objects::Commit
+  end
+
+  describe '#commit' do
+
+    it 'creates valid commits' do
+      now = Date.new
+      commit = repo.commit 'commit message', 'me', now
+
+      expect(commit).to be_a VCSToolkit::Objects::Commit
+
+      expect(object_store).to include(commit.object_id)
+      expect(object_store).to include(commit.tree.object_id)
+
+      expect(commit.message).to eq 'commit message'
+      expect(commit.author).to  eq 'me'
+      expect(commit.date).to    eq now
+    end
+
+    it 'has nil parent of the first commit' do
+      commit = repo.commit 'commit message', 'me', Date.new
+
+      expect(commit.parent).to be nil
+    end
+
+    it 'sets the correct parent' do
+      # TODO
+      # old_commit = repo.commit 'commit 1', 'me', Date.new
+      # new_commit = repo.commit 'commit 2', 'me', Date.new
+      #
+      # repo.head = old_commit
+      #
+      # expect(new_commit.parent).to eq old_commit.object_id
+    end
+
+  end
+
+  describe '#create_tree' do
+
+    context 'with empty staging area' do
+      subject(:repo) { VCSToolkit::Repository.new(object_store, working_dir) }
+
+      it 'creates a valid tree' do
+        tree = repo.send :create_tree
+
+        expect(tree).to be_a VCSToolkit::Objects::Tree
+        expect(tree.files).to eq({})
+        expect(tree.trees).to eq({})
+      end
+
+      it 'saves the tree to the object store' do
+        tree = repo.send :create_tree
+
+        expect(tree).to be_a VCSToolkit::Objects::Tree
+        expect(object_store).to include tree.object_id
+      end
+    end
+
+    context 'with non-empty staging area' do
+      let(:nonempty_working_dir) do
+        VCSToolkit::Utils::MemoryFileStore.new({
+          'README.md'                             => 'This is a readme file',
+          'lib/vcs_toolkit.rb'                    => 'require ...',
+          'lib/vcs_toolkit/utils/memory_store.rb' => 'class MemoryStore',
+          'lib/vcs_toolkit/utils/object_store.rb' => 'class ObjectStore',
+          'lib/vcs_toolkit/objects/object.rb'     => 'class Object',
+        })
+      end
+      subject(:repo) { VCSToolkit::Repository.new(object_store, nonempty_working_dir) }
+
+      it 'creates a valid tree' do
+        tree = repo.send :create_tree
+
+        expect(tree).to be_a VCSToolkit::Objects::Tree
+        expect(tree.files).to have(1).file
+
+        blob = object_store[tree.files['README.md']]
+        expect(blob.content).to eq 'This is a readme file'
+      end
+
+      it 'passes **context to blob and tree initializers' do
+        # TODO
+      end
+    end
+
   end
 
 end

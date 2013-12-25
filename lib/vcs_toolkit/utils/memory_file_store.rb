@@ -4,7 +4,7 @@ module VCSToolkit
   module Utils
 
     class MemoryFileStore < FileStore
-      def initialize(file_hash)
+      def initialize(file_hash = {})
         @files = {}
 
         file_hash.each do |path, content|
@@ -45,7 +45,7 @@ module VCSToolkit
           name = file_path.sub(path, '').sub(/^\/+/, '')
 
           if file_path.start_with?(path) and not name.empty? and not name.include?('/')
-            yield name, file
+            yield name
           end
         end
       end
