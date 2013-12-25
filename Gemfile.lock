@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    vcs_toolkit (0.0.0)
+    vcs_toolkit (0.0.1)
       diff-lcs
 
 GEM
