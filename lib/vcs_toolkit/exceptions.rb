@@ -4,4 +4,7 @@ module VCSToolkit
 
   class InvalidObjectError < VCSToolkitError
   end
+
+  class UnknownLabelError < VCSToolkitError
+  end
 end

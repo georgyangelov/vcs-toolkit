@@ -50,13 +50,17 @@ describe VCSToolkit::Repository do
     end
 
     it 'sets the correct parent' do
-      # TODO
-      # old_commit = repo.commit 'commit 1', 'me', Date.new
-      # new_commit = repo.commit 'commit 2', 'me', Date.new
-      #
-      # repo.head = old_commit
-      #
-      # expect(new_commit.parent).to eq old_commit.object_id
+      old_commit = repo.commit 'commit 1', 'me', Date.new
+      new_commit = repo.commit 'commit 2', 'me', Date.new
+
+      expect(new_commit.parent).to eq old_commit.object_id
+    end
+
+    it 'updates the head commit' do
+      old_commit = repo.commit 'commit 1', 'me', Date.new
+      new_commit = repo.commit 'commit 2', 'me', Date.new
+
+      expect(repo.head).to eq new_commit.object_id
     end
 
   end

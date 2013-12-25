@@ -1,10 +1,13 @@
 module VCSToolkit
 
   class Repository
-    attr_reader :repository, :working_dir, :staging_area
-    attr_reader :commit_class, :tree_class, :blob_class, :label_class
+    attr_reader :repository, :working_dir, :staging_area,
+                :commit_class, :tree_class, :blob_class, :label_class
+
+    attr_accessor :head
 
     def initialize(repository, working_dir, staging_area: working_dir,
+                                            head:         nil,
                                             commit_class: Objects::Commit,
                                             tree_class:   Objects::Tree,
                                             blob_class:   Objects::Blob,
@@ -17,13 +20,31 @@ module VCSToolkit
       @tree_class   = tree_class
       @blob_class   = blob_class
       @label_class  = label_class
+
+      @head = head
+    end
+
+    def head=(commit_or_label_or_object_id)
+      case commit_or_label_or_object_id
+      when Objects::Commit
+        @head = commit_or_label_or_object_id.object_id
+      when Objects::Label
+        @head = commit_or_label_or_object_id.reference_id
+      when String
+        @head = commit_or_label_or_object_id
+      else
+        raise UnknownLabelError
+      end
     end
 
     def commit(message, author, date, **context)
-      tree   = create_tree **context
-      commit = commit_class.new message, tree, nil, author, date
+      tree = create_tree **context
 
-      repository.store commit.object_id, commit
+      commit_class.new(message, tree, head, author, date).tap do |commit|
+        repository.store commit.object_id, commit
+
+        self.head = commit
+      end
     end
 
     protected
