@@ -8,7 +8,13 @@ describe VCSToolkit::Objects::Commit do
   let(:message) { 'Bring world peace' }
   let(:date)    { Date.new            }
 
-  let(:commit) { described_class.new message, tree, parent, author, date }
+  let(:commit) do
+    described_class.new message: message,
+                        tree:    tree,
+                        parent:  parent,
+                        author:  author,
+                        date:    date
+  end
 
   context 'interface' do
     it 'has message getter' do
@@ -42,14 +48,25 @@ describe VCSToolkit::Objects::Commit do
     end
 
     it 'has a default object_id of the commit content hash' do
-      other_commit = described_class.new message, tree, parent, author, date
+      other_commit = described_class.new message: message,
+                                         tree:    tree,
+                                         parent:  parent,
+                                         author:  author,
+                                         date:    date
 
       expect(commit.object_id).to eq other_commit.object_id
     end
   end
 
   context 'with valid explicit object_id' do
-    subject { described_class.new message, tree, parent, author, date, object_id: commit.object_id }
+    subject do
+      described_class.new message:   message,
+                          tree:      tree,
+                          parent:    parent,
+                          author:    author,
+                          date:      date,
+                          object_id: commit.object_id
+    end
 
     it 'does not raise an error' do
       expect { subject }.to_not raise_error
@@ -57,7 +74,14 @@ describe VCSToolkit::Objects::Commit do
   end
 
   context 'with invalid explicit object_id' do
-    subject { described_class.new message, tree, parent, author, date, object_id: '1234' }
+    subject do
+      described_class.new message:   message,
+                          tree:      tree,
+                          parent:    parent,
+                          author:    author,
+                          date:      date,
+                          object_id: '1234'
+    end
 
     it 'raises an InvalidObjectError' do
       expect { subject }.to raise_error(VCSToolkit::InvalidObjectError)

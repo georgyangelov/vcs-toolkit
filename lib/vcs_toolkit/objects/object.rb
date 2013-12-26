@@ -1,10 +1,15 @@
+require 'vcs_toolkit/serializable'
+
 module VCSToolkit
   module Objects
 
     class Object
-      attr_reader :object_id
+      extend Serializable
 
-      def initialize(object_id, named: false, **context)
+      attr_reader  :object_id
+      serialize_on :object_id
+
+      def initialize(object_id:, named: false, **context)
         @object_id = object_id
         @named = named
       end

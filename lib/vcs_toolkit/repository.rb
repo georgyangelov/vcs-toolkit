@@ -40,11 +40,14 @@ module VCSToolkit
     def commit(message, author, date, **context)
       tree = create_tree **context
 
-      commit_class.new(message, tree, head, author, date).tap do |commit|
-        repository.store commit.object_id, commit
+      commit = commit_class.new message: message,
+                                tree:    tree,
+                                parent:  head,
+                                author:  author,
+                                date:    date
 
-        self.head = commit
-      end
+      repository.store commit.object_id, commit
+      self.head = commit
     end
 
     protected
@@ -52,7 +55,7 @@ module VCSToolkit
     def create_tree(path='', **context)
       files = staging_area.files(path).each_with_object({}) do |file_name, files|
         file_path = concat_path path, file_name
-        files[file_name] = blob_class.new staging_area.fetch(file_path), **context
+        files[file_name] = blob_class.new content: staging_area.fetch(file_path), **context
       end
 
       trees = staging_area.directories(path).each_with_object({}) do |dir_name, trees|
@@ -69,9 +72,11 @@ module VCSToolkit
         trees[name] = tree.object_id
       end
 
-      tree_class.new(files, trees, **context).tap do |tree|
-        repository.store tree.object_id, tree unless repository.key? tree.object_id
-      end
+      tree = tree_class.new files: files,
+                            trees: trees,
+                            **context
+
+      repository.store tree.object_id, tree unless repository.key? tree.object_id
     end
 
     private

@@ -13,19 +13,24 @@ module VCSToolkit
     #
     # The object_id of the blob is by default its content's hash.
     #
+    # The content is not serialized by default (in Blob.to_hash) because
+    # one might decide that content should be
+    # handled differently (or in different format).
+    #
     class Blob < Object
       include HashableObject
 
-      attr_reader :content
+      attr_reader  :content
+      serialize_on :object_id
 
-      def initialize(content, object_id: nil, **context)
+      def initialize(content:, object_id: nil, **context)
         @content = content
 
         if object_id
-          super object_id, **context
+          super object_id: object_id, **context
           raise InvalidObjectError unless id_valid?
         else
-          super generate_id, **context
+          super object_id: generate_id, **context
         end
       end
 

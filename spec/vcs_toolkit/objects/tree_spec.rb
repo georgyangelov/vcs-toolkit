@@ -8,7 +8,7 @@ describe VCSToolkit::Objects::Tree do
   let(:files_reordered) { {'Rakefile' => '2345', 'README.md' => '1234'} }
   let(:trees_reordered) { {'spec' => '4567', 'lib' => '3456'}           }
 
-  let(:tree) { described_class.new files, trees }
+  let(:tree) { described_class.new files: files, trees: trees }
 
   context 'interface' do
     it 'has files getter' do
@@ -30,14 +30,14 @@ describe VCSToolkit::Objects::Tree do
     end
 
     it 'has a default object_id of the tree content hash' do
-      other_tree = described_class.new files, trees
+      other_tree = described_class.new files: files, trees: trees
 
       expect(other_tree.object_id).to eq tree.object_id
     end
   end
 
   context 'with valid explicit object_id' do
-    subject { described_class.new files, trees, object_id: tree.object_id }
+    subject { described_class.new files: files, trees: trees, object_id: tree.object_id }
 
     it 'does not raise an error' do
       expect { subject }.to_not raise_error
@@ -45,7 +45,7 @@ describe VCSToolkit::Objects::Tree do
   end
 
   context 'with reordered files and trees' do
-    subject { described_class.new files_reordered, trees_reordered }
+    subject { described_class.new files: files_reordered, trees: trees_reordered }
 
     it 'has the same object_id' do
       expect(subject.object_id).to eq tree.object_id
@@ -53,7 +53,7 @@ describe VCSToolkit::Objects::Tree do
   end
 
   context 'with invalid explicit object_id' do
-    subject { described_class.new files, trees, object_id: '1234' }
+    subject { described_class.new files: files, trees: trees, object_id: '1234' }
 
     it 'raises an InvalidObjectError' do
       expect { subject }.to raise_error(VCSToolkit::InvalidObjectError)

@@ -4,9 +4,10 @@ module VCSToolkit
     class Commit < Object
       include HashableObject
 
-      attr_reader :message, :tree, :parent, :author, :date
+      attr_reader  :message, :tree, :parent, :author, :date
+      serialize_on :object_id, :message, :tree, :parent, :author, :date
 
-      def initialize(message, tree, parent, author, date, object_id: nil, **context)
+      def initialize(message:, tree:, parent:, author:, date:, object_id: nil, **context)
         @message = message
         @tree    = tree
         @parent  = parent
@@ -14,10 +15,10 @@ module VCSToolkit
         @date    = date
 
         if object_id
-          super object_id, **context
+          super object_id: object_id, **context
           raise InvalidObjectError unless id_valid?
         else
-          super generate_id, **context
+          super object_id: generate_id, **context
         end
       end
 

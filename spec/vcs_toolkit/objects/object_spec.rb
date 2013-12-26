@@ -3,7 +3,7 @@ require 'spec_helper'
 describe VCSToolkit::Objects::Object do
 
   context 'with fresh named instance' do
-    subject { described_class.new :custom_object_id, named: true }
+    subject { described_class.new object_id: :custom_object_id, named: true }
 
     it 'has an object_id reader' do
       expect(subject.object_id).to eq :custom_object_id
@@ -15,7 +15,7 @@ describe VCSToolkit::Objects::Object do
   end
 
   context 'with fresh nameless instance' do
-    subject { described_class.new :object_id_hash }
+    subject { described_class.new object_id: :object_id_hash }
 
     it 'has an object_id reader' do
       expect(subject.object_id).to eq :object_id_hash
@@ -27,16 +27,16 @@ describe VCSToolkit::Objects::Object do
   end
 
   it 'should equal other objects with the same object_id' do
-    object_one = described_class.new :object_id_one
-    object_two = described_class.new :object_id_one
+    object_one = described_class.new object_id: :object_id_one
+    object_two = described_class.new object_id: :object_id_one
 
     expect(object_one).to eq  object_two
     expect(object_one).to eql object_two
   end
 
   it 'should not equal objects with different object_id' do
-    object_one = described_class.new :object_id_one
-    object_two = described_class.new :object_id_two
+    object_one = described_class.new object_id: :object_id_one
+    object_two = described_class.new object_id: :object_id_two
 
     expect(object_one).to_not eq  object_two
     expect(object_one).to_not eql object_two
