@@ -3,11 +3,11 @@ module VCSToolkit
 
     class Label < Object
       attr_reader  :reference_id
-      serialize_on :name, :object_type, :reference_id
+      serialize_on :object_id, :object_type, :reference_id
 
-      def initialize(name:, reference_id:, **context)
+      def initialize(object_id:, reference_id:, **context)
         @reference_id = reference_id
-        super object_id:   name,
+        super object_id:   object_id,
               object_type: :label,
               named:       true,
               **context

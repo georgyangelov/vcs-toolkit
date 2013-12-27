@@ -11,7 +11,7 @@ module VCSToolkit
 
       def initialize(object_id:, object_type: :object, named: false, **context)
         @object_id   = object_id
-        @object_type = object_type
+        @object_type = object_type.to_sym
         @named       = named
       end
 
