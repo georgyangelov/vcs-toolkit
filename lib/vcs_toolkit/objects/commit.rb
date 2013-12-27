@@ -5,7 +5,7 @@ module VCSToolkit
       include HashableObject
 
       attr_reader  :message, :tree, :parent, :author, :date
-      serialize_on :object_id, :message, :tree, :parent, :author, :date
+      serialize_on :object_id, :object_type, :message, :tree, :parent, :author, :date
 
       def initialize(message:, tree:, parent:, author:, date:, object_id: nil, **context)
         @message = message
@@ -15,10 +15,14 @@ module VCSToolkit
         @date    = date
 
         if object_id
-          super object_id: object_id, **context
+          super object_id:   object_id,
+                object_type: :commit,
+                **context
           raise InvalidObjectError unless id_valid?
         else
-          super object_id: generate_id, **context
+          super object_id:   generate_id,
+                object_type: :commit,
+                **context
         end
       end
 

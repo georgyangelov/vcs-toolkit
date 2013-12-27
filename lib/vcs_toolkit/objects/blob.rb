@@ -21,16 +21,20 @@ module VCSToolkit
       include HashableObject
 
       attr_reader  :content
-      serialize_on :object_id
+      serialize_on :object_id, :object_type
 
       def initialize(content:, object_id: nil, **context)
         @content = content
 
         if object_id
-          super object_id: object_id, **context
+          super object_id:   object_id,
+                object_type: :blob,
+                **context
           raise InvalidObjectError unless id_valid?
         else
-          super object_id: generate_id, **context
+          super object_id:   generate_id,
+                object_type: :blob,
+                **context
         end
       end
 

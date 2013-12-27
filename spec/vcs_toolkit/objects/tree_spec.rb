@@ -18,6 +18,10 @@ describe VCSToolkit::Objects::Tree do
     it 'has trees getter' do
       expect(tree.trees).to eq trees
     end
+
+    it 'has a tree object_type' do
+      expect(tree.object_type).to eq :tree
+    end
   end
 
   context 'without explicit object_id' do

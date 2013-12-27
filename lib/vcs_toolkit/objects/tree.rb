@@ -10,17 +10,21 @@ module VCSToolkit
       include HashableObject
 
       attr_reader  :files, :trees
-      serialize_on :object_id, :files, :trees
+      serialize_on :object_id, :object_type, :files, :trees
 
       def initialize(files:, trees:, object_id: nil, **context)
         @files = files
         @trees = trees
 
         if object_id
-          super object_id: object_id, **context
+          super object_id:   object_id,
+                object_type: :tree,
+                **context
           raise InvalidObjectError unless id_valid?
         else
-          super object_id: generate_id, **context
+          super object_id:   generate_id,
+                object_type: :tree,
+                **context
         end
       end
 

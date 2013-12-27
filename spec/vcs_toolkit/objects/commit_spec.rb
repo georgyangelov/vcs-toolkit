@@ -40,6 +40,10 @@ describe VCSToolkit::Objects::Commit do
     it 'is not named' do
       expect(commit.named?).to eq false
     end
+
+    it 'has a commit object_type' do
+      expect(commit.object_type).to eq :commit
+    end
   end
 
   context 'without explicit object_id' do

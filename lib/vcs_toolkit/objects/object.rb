@@ -6,12 +6,13 @@ module VCSToolkit
     class Object
       extend Serializable
 
-      attr_reader  :object_id
-      serialize_on :object_id
+      attr_reader  :object_id, :object_type
+      serialize_on :object_id, :object_type
 
-      def initialize(object_id:, named: false, **context)
-        @object_id = object_id
-        @named = named
+      def initialize(object_id:, object_type: :object, named: false, **context)
+        @object_id   = object_id
+        @object_type = object_type
+        @named       = named
       end
 
       def named?

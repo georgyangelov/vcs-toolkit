@@ -12,6 +12,10 @@ describe VCSToolkit::Objects::Object do
     it 'has a #named? reader = true' do
       expect(subject.named?).to eq true
     end
+
+    it 'has an object_type reader' do
+      expect(subject.object_type).to eq :object
+    end
   end
 
   context 'with fresh nameless instance' do

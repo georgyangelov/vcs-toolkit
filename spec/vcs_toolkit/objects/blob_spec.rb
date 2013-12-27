@@ -19,6 +19,10 @@ describe VCSToolkit::Objects::Blob do
     it 'has a default object_id of the blob content hash' do
       expect(subject.object_id).to eq content_hash
     end
+
+    it 'has a blob object_type' do
+      expect(subject.object_type).to eq :blob
+    end
   end
 
   context 'with valid explicit object_id' do

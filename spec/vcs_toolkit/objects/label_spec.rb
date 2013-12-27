@@ -15,6 +15,10 @@ describe VCSToolkit::Objects::Label do
     it 'is named' do
       expect(label.named?).to eq true
     end
+
+    it 'has a label object_type' do
+      expect(label.object_type).to eq :label
+    end
   end
 
   it 'should equal other labels with the same data' do
