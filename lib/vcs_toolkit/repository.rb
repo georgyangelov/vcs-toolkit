@@ -54,7 +54,7 @@ module VCSToolkit
 
     protected
 
-    def create_tree(path='', ignores: [], **context)
+    def create_tree(path='', ignores: [/^\./], **context)
       files = staging_area.files(path).each_with_object({}) do |file_name, files|
         file_path = concat_path path, file_name
 
