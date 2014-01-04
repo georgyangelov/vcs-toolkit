@@ -36,7 +36,7 @@ describe VCSToolkit::Repository do
       expect(commit).to be_a VCSToolkit::Objects::Commit
 
       expect(object_store).to include(commit.object_id)
-      expect(object_store).to include(commit.tree.object_id)
+      expect(object_store).to include(commit.tree)
 
       expect(commit.message).to eq 'commit message'
       expect(commit.author).to  eq 'me'
@@ -106,6 +106,19 @@ describe VCSToolkit::Repository do
 
         blob = object_store[tree.files['README.md']]
         expect(blob.content).to eq 'This is a readme file'
+      end
+
+      it 'can ignore file names' do
+        tree = repo.send :create_tree, ignores: ['README.md']
+
+        expect(tree.files).to be_empty
+      end
+
+      it 'can ignore path patterns' do
+        tree = repo.send :create_tree, 'lib/vcs_toolkit/', ignores: [/vcs_toolkit\/utils/]
+
+        expect(tree.trees['utils']).to be_nil
+        expect(tree.trees['objects']).to be
       end
 
       it 'passes **context to blob and tree initializers' do
