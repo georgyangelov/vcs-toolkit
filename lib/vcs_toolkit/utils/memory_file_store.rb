@@ -41,6 +41,9 @@ module VCSToolkit
       end
 
       def each_file(path='')
+        path = path.sub(/\/+$/, '')
+        path = "#{path}/" unless path.empty?
+
         @files.each do |file_path, file|
           name = file_path.sub(path, '').sub(/^\/+/, '')
 

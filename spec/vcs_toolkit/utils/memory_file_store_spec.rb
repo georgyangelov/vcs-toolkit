@@ -68,6 +68,10 @@ describe VCSToolkit::Utils::MemoryFileStore do
     ]
   end
 
+  it 'does not confuse files and directories with the same prefix' do
+    expect(subject.files('lib/vcs_toolkit').to_a).to be_empty
+  end
+
   it 'can iterate over files in inner directories' do
     expect(subject.files('lib/vcs_toolkit/utils/').to_a).to match_array [
       'memory_store.rb',
