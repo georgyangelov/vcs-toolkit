@@ -33,7 +33,7 @@ module VCSToolkit
       # (including files in child trees).
       #
       def all_files(object_store)
-        enum_for(:yield_all_files, object_store)
+        enum_for :yield_all_files, object_store
       end
 
       private

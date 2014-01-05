@@ -35,7 +35,7 @@ module VCSToolkit
     end
 
     ##
-    # Implement this to enumerate over all files.
+    # Implement this to enumerate over all files in the given directory.
     #
     # The order of enumeration doesn't matter.
     #
@@ -57,11 +57,29 @@ module VCSToolkit
     end
 
     def files(path='')
-      enum_for(:each_file, path)
+      enum_for :each_file, path
     end
 
     def directories(path='')
-      enum_for(:each_directory, path)
+      enum_for :each_directory, path
+    end
+
+    def all_files(path='')
+      enum_for :yield_all_files, path
+    end
+
+    private
+
+    def yield_all_files(path='', &block)
+      files(path).each &block
+
+      directories(path).each do |dir_name|
+        dir_path = File.join(path, dir_name).sub(/^\/+/, '')
+
+        all_files(dir_path).each do |file_name|
+          yield File.join(dir_name, file_name)
+        end
+      end
     end
   end
 end

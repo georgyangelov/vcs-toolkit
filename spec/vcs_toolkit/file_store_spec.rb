@@ -23,4 +23,49 @@ describe VCSToolkit::FileStore do
     expect { subject.each_directory { }       }.to raise_error(NotImplementedError)
   end
 
+  describe '#all_files' do
+    let(:custom_file_store) do
+      filesystem = {
+        '' => {
+          files: ['README.md', 'test.txt'],
+          dirs:  ['bin', 'lib'],
+        },
+        'bin' => {
+          files: ['scv'],
+          dirs:  ['lib'],
+        },
+        'lib' => {
+          files: ['scv.rb'],
+          dirs:  [],
+        },
+        'bin/lib' => {
+          files: ['utils.rb'],
+          dirs:  [],
+        },
+      }
+
+      Class.new VCSToolkit::FileStore do
+        define_method :each_file do |path='', &block|
+          filesystem[path][:files].each &block
+        end
+
+        define_method :each_directory do |path='', &block|
+          filesystem[path][:dirs].each &block
+        end
+      end
+    end
+
+    it 'should enumerate all files' do
+      store = custom_file_store.new
+
+      expect(store.all_files.to_a).to match_array [
+        'README.md',
+        'test.txt',
+        'bin/scv',
+        'lib/scv.rb',
+        'bin/lib/utils.rb',
+      ]
+    end
+  end
+
 end
