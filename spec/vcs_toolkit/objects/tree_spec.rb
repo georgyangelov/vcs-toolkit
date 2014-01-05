@@ -64,4 +64,36 @@ describe VCSToolkit::Objects::Tree do
     end
   end
 
+  describe '#all_files' do
+    let(:object_store) do
+      {
+        '1' => VCSToolkit::Objects::Tree.new(
+          files: {
+            'README'   => '987',
+            'test.txt' => '967',
+          },
+          trees: {
+            'bin' => '2',
+          }
+        ),
+        '2' => VCSToolkit::Objects::Tree.new(
+          files: {
+            'vcs' => '123'
+          },
+          trees: {}
+        ),
+      }
+    end
+
+    subject(:root_tree) { object_store.fetch '1' }
+
+    it 'iterates correctly over all files' do
+      expect(root_tree.all_files(object_store).to_a).to match_array [
+        ['README',   '987'],
+        ['test.txt', '967'],
+        ['bin/vcs',  '123'],
+      ]
+    end
+  end
+
 end

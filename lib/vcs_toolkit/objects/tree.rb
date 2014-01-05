@@ -28,7 +28,27 @@ module VCSToolkit
         end
       end
 
+      ##
+      # Iterates over all [file, blob_id] pairs recursively
+      # (including files in child trees).
+      #
+      def all_files(object_store)
+        enum_for(:yield_all_files, object_store)
+      end
+
       private
+
+      def yield_all_files(object_store, &block)
+        files.each &block
+
+        trees.each do |dir_name, tree_id|
+          tree = object_store.fetch tree_id
+
+          tree.all_files(object_store).each do |file_name, blob_id|
+            yield File.join(dir_name, file_name), blob_id
+          end
+        end
+      end
 
       def generate_id
         Digest::SHA1.hexdigest [@files.sort, @trees.sort].inspect

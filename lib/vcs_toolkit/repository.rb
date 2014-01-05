@@ -24,6 +24,7 @@ module VCSToolkit
       self.head = head if head
     end
 
+    # TODO: This should resolve more levels of references
     def head=(commit_or_label_or_object_id)
       case commit_or_label_or_object_id
       when Objects::Commit
