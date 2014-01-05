@@ -37,6 +37,8 @@ module VCSToolkit
       else
         raise UnknownLabelError
       end
+
+      set_label :head, head
     end
 
     def commit(message, author, date, ignores: [], **context)
@@ -51,6 +53,15 @@ module VCSToolkit
       repository.store commit.object_id, commit
       self.head = commit
     end
+
+    ##
+    # Return the object with this object_id or nil if it doesn't exist.
+    #
+    def get_object(object_id)
+      repository.fetch object_id if repository.key? object_id
+    end
+
+    alias_method :[], :get_object
 
     protected
 
@@ -87,6 +98,17 @@ module VCSToolkit
       repository.store tree.object_id, tree unless repository.key? tree.object_id
 
       tree
+    end
+
+    ##
+    # Creates a label (named object) pointing to `reference_id`
+    #
+    # If the label already exists it is overriden.
+    #
+    def set_label(name, reference_id)
+      label = label_class.new object_id: name, reference_id: reference_id
+
+      repository.store name, label
     end
 
     private

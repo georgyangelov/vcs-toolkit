@@ -128,4 +128,16 @@ describe VCSToolkit::Repository do
 
   end
 
+  it 'finds and creates labels' do
+    repo.send :set_label, 'test_label', '123456'
+    expect(repo['test_label']).to be_a VCSToolkit::Objects::Label
+  end
+
+  it 'overrides already set labels' do
+    repo.send :set_label, 'test_label', '123456'
+    repo.send :set_label, 'test_label', '654321'
+
+    expect(repo['test_label'].reference_id).to eq '654321'
+  end
+
 end
