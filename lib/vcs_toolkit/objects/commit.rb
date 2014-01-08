@@ -2,9 +2,9 @@ module VCSToolkit
   module Objects
 
     class Commit < Object
-      include HashableObject
 
       attr_reader  :message, :tree, :parent, :author, :date
+      hash_on      :message, :tree, :parent, :author, :date
       serialize_on :object_id, :object_type, :message, :tree, :parent, :author, :date
 
       def initialize(message:, tree:, parent:, author:, date:, object_id: nil, **context)
@@ -26,11 +26,6 @@ module VCSToolkit
         end
       end
 
-      private
-
-      def generate_id
-        Digest::SHA1.hexdigest [@message, @tree, @parent, @author, @date].inspect
-      end
     end
 
   end

@@ -18,9 +18,9 @@ module VCSToolkit
     # handled differently (or in different format).
     #
     class Blob < Object
-      include HashableObject
 
       attr_reader  :content
+      hash_on      :content
       serialize_on :object_id, :object_type
 
       def initialize(content:, object_id: nil, **context)
@@ -38,11 +38,6 @@ module VCSToolkit
         end
       end
 
-      private
-
-      def generate_id
-        Digest::SHA1.hexdigest(@content)
-      end
     end
 
   end

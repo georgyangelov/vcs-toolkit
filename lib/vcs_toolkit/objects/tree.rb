@@ -7,7 +7,6 @@ module VCSToolkit
   module Objects
 
     class Tree < Object
-      include HashableObject
 
       attr_reader  :files, :trees
       serialize_on :object_id, :object_type, :files, :trees
@@ -50,8 +49,8 @@ module VCSToolkit
         end
       end
 
-      def generate_id
-        Digest::SHA1.hexdigest [@files.sort, @trees.sort].inspect
+      def hash_objects
+        [@files.sort, @trees.sort]
       end
     end
   end

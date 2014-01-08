@@ -1,10 +1,12 @@
 require 'vcs_toolkit/serializable'
+require 'vcs_toolkit/utils/hashable_object'
 
 module VCSToolkit
   module Objects
 
     class Object
-      extend Serializable
+      extend  Serializable
+      include Utils::HashableObject
 
       attr_reader  :object_id, :object_type
       serialize_on :object_id, :object_type
@@ -27,19 +29,6 @@ module VCSToolkit
 
       def hash
         object_id.hash
-      end
-    end
-
-    module HashableObject
-
-      private
-
-      def generate_id
-        raise NotImplementedError
-      end
-
-      def id_valid?
-        @object_id == generate_id
       end
     end
 
