@@ -35,6 +35,16 @@ module VCSToolkit
     end
 
     ##
+    # Implement this to compare a file and a blob object.
+    # It should return boolean value to indicate wether the file is different.
+    #
+    # The hash algorithm should be the same one used in `Objects::*`.
+    #
+    def changed?(path, blob)
+      raise NotImplementedError, 'You must implement FileStore#changed?'
+    end
+
+    ##
     # Implement this to enumerate over all files in the given directory.
     #
     # The order of enumeration doesn't matter.

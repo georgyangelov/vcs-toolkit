@@ -8,6 +8,7 @@ describe VCSToolkit::FileStore do
   it { should respond_to :store          }
   it { should respond_to :file?          }
   it { should respond_to :directory?     }
+  it { should respond_to :changed?       }
   it { should respond_to :exist?         }
   it { should respond_to :each_file      }
   it { should respond_to :files          }
@@ -19,6 +20,7 @@ describe VCSToolkit::FileStore do
     expect { subject.store('README.md', :obj) }.to raise_error(NotImplementedError)
     expect { subject.file?('README.md')       }.to raise_error(NotImplementedError)
     expect { subject.directory?('README.md')  }.to raise_error(NotImplementedError)
+    expect { subject.changed?('README', '')   }.to raise_error(NotImplementedError)
     expect { subject.each_file { }            }.to raise_error(NotImplementedError)
     expect { subject.each_directory { }       }.to raise_error(NotImplementedError)
   end

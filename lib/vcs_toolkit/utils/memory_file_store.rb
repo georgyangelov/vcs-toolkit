@@ -40,6 +40,12 @@ module VCSToolkit
         end
       end
 
+      def changed?(path, blob)
+        content = fetch path
+
+        content != blob.content
+      end
+
       def each_file(path='')
         path = path.sub(/\/+$/, '')
         path = "#{path}/" unless path.empty?
