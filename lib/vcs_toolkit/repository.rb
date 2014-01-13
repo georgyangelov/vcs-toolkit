@@ -64,6 +64,16 @@ module VCSToolkit
 
     alias_method :[], :get_object
 
+    ##
+    # Return new, changed and deleted files
+    # compared to a specific commit and the staging area.
+    #
+    # The return value is a hash with :created, :changed and :deleted keys.
+    #
+    def status(commit_id)
+      Utils::Status.compare_tree_and_store get_object(commit_id).tree, repository
+    end
+
     protected
 
     def create_tree(path='', ignores: [/^\./], **context)

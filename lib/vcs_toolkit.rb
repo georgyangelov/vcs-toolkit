@@ -12,3 +12,4 @@ require 'vcs_toolkit/file_store'
 require 'vcs_toolkit/repository'
 
 require 'vcs_toolkit/utils/memory_file_store'
+require 'vcs_toolkit/utils/status'

@@ -140,4 +140,18 @@ describe VCSToolkit::Repository do
     expect(repo['test_label'].reference_id).to eq '654321'
   end
 
+  describe '#status' do
+    it 'calls Utils::Status.compare_tree_and_store' do
+      files = {
+        created: %w(f1 f2 f3),
+        changed: %w(f6 f7),
+        deleted: %w(f4 f5),
+      }
+
+      expect(VCSToolkit::Utils::Status).to receive(:compare_tree_and_store).and_return(files)
+      allow(repo).to receive(:get_object) { double(tree: 'tree') }
+      expect(repo.status(nil)).to eq files
+    end
+  end
+
 end
