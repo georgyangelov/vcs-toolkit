@@ -3,44 +3,53 @@ require 'spec_helper'
 describe VCSToolkit::Objects::Object do
 
   context 'with fresh named instance' do
-    subject { described_class.new object_id: :custom_object_id, named: true }
+    subject(:object) { described_class.new object_id: :custom_object_id, named: true }
 
     it 'has an object_id reader' do
-      expect(subject.object_id).to eq :custom_object_id
+      expect(object.object_id).to eq :custom_object_id
     end
 
     it 'has a #named? reader = true' do
-      expect(subject.named?).to eq true
+      expect(object.named?).to eq true
     end
 
     it 'has an object_type reader' do
-      expect(subject.object_type).to eq :object
+      expect(object.object_type).to eq :object
     end
   end
 
   context 'with fresh nameless instance' do
-    subject { described_class.new object_id: :object_id_hash }
+    subject(:object) do
+      described_class.new object_id: :object_id_hash,
+                          verify_object_id: false
+    end
 
     it 'has an object_id reader' do
-      expect(subject.object_id).to eq :object_id_hash
+      expect(object.object_id).to eq :object_id_hash
     end
 
     it 'has a #named? reader = false' do
-      expect(subject.named?).to eq false
+      expect(object.named?).to eq false
     end
   end
 
   it 'should equal other objects with the same object_id' do
-    object_one = described_class.new object_id: :object_id_one
-    object_two = described_class.new object_id: :object_id_one
+    object_one = described_class.new object_id: :object_id_one,
+                                     verify_object_id: false
+
+    object_two = described_class.new object_id: :object_id_one,
+                                     verify_object_id: false
 
     expect(object_one).to eq  object_two
     expect(object_one).to eql object_two
   end
 
   it 'should not equal objects with different object_id' do
-    object_one = described_class.new object_id: :object_id_one
-    object_two = described_class.new object_id: :object_id_two
+    object_one = described_class.new object_id: :object_id_one,
+                                     verify_object_id: false
+
+    object_two = described_class.new object_id: :object_id_two,
+                                     verify_object_id: false
 
     expect(object_one).to_not eq  object_two
     expect(object_one).to_not eql object_two

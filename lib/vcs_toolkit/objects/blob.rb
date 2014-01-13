@@ -26,16 +26,9 @@ module VCSToolkit
       def initialize(content:, object_id: nil, **context)
         @content = content
 
-        if object_id
-          super object_id:   object_id,
-                object_type: :blob,
-                **context
-          raise InvalidObjectError unless id_valid?
-        else
-          super object_id:   generate_id,
-                object_type: :blob,
-                **context
-        end
+        super object_id:   object_id,
+              object_type: :blob,
+              **context
       end
 
     end

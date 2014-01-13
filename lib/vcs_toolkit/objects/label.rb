@@ -7,6 +7,7 @@ module VCSToolkit
 
       def initialize(object_id:, reference_id:, **context)
         @reference_id = reference_id
+
         super object_id:   object_id,
               object_type: :label,
               named:       true,

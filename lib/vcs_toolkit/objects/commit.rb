@@ -14,16 +14,9 @@ module VCSToolkit
         @author  = author
         @date    = date
 
-        if object_id
-          super object_id:   object_id,
-                object_type: :commit,
-                **context
-          raise InvalidObjectError unless id_valid?
-        else
-          super object_id:   generate_id,
-                object_type: :commit,
-                **context
-        end
+        super object_id:   object_id,
+              object_type: :commit,
+              **context
       end
 
     end

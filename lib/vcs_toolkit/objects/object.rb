@@ -11,10 +11,21 @@ module VCSToolkit
       attr_reader  :object_id, :object_type
       serialize_on :object_id, :object_type
 
-      def initialize(object_id:, object_type: :object, named: false, **context)
-        @object_id   = object_id
+      def initialize(object_id:        nil,
+                     object_type:      :object,
+                     named:            false,
+                     verify_object_id: true,
+                     **context)
         @object_type = object_type.to_sym
         @named       = named
+
+        if object_id
+          @object_id = object_id
+          raise InvalidObjectError, 'Invalid object_id' if verify_object_id and not named? and not id_valid?
+        else
+          raise InvalidObjectError, 'Named objects should always specify an object_id' if named?
+          @object_id = generate_id
+        end
       end
 
       def named?

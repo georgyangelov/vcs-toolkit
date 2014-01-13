@@ -15,16 +15,9 @@ module VCSToolkit
         @files = files
         @trees = trees
 
-        if object_id
-          super object_id:   object_id,
-                object_type: :tree,
-                **context
-          raise InvalidObjectError unless id_valid?
-        else
-          super object_id:   generate_id,
-                object_type: :tree,
-                **context
-        end
+        super object_id:   object_id,
+              object_type: :tree,
+              **context
       end
 
       ##
