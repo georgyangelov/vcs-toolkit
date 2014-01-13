@@ -16,6 +16,10 @@ describe VCSToolkit::Objects::Object do
     it 'has an object_type reader' do
       expect(object.object_type).to eq :object
     end
+
+    it 'has a release_resources method' do
+      expect(object).to respond_to :release_resources
+    end
   end
 
   context 'with fresh nameless instance' do

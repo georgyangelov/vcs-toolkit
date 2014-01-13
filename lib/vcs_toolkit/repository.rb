@@ -53,6 +53,9 @@ module VCSToolkit
 
       repository.store commit.object_id, commit
       self.head = commit
+    ensure
+      tree.release_resources   if tree
+      commit.release_resources if commit
     end
 
     ##
@@ -93,13 +96,15 @@ module VCSToolkit
         trees[dir_name] = create_tree dir_path, **context
       end
 
-      files.each do |name, file|
-        repository.store file.object_id, file unless repository.key? file.object_id
+      files.each do |name, blob|
+        repository.store blob.object_id, blob unless repository.key? blob.object_id
 
-        files[name] = file.object_id
+        files[name] = blob.object_id
+        blob.release_resources
       end
       trees.each do |name, tree|
         trees[name] = tree.object_id
+        tree.release_resources
       end
 
       tree = tree_class.new files: files,
@@ -120,6 +125,8 @@ module VCSToolkit
       label = label_class.new object_id: name, reference_id: reference_id
 
       repository.store name, label
+
+      label.release_resources
     end
 
     private
