@@ -41,14 +41,6 @@ module VCSToolkit
       def hash
         object_id.hash
       end
-
-      ##
-      # Call this after the object is no longer needed
-      # so it can release any file handlers or other
-      # resources that it might need.
-      #
-      def release_resources
-      end
     end
 
   end
