@@ -154,4 +154,20 @@ describe VCSToolkit::Repository do
     end
   end
 
+  describe '#history' do
+    it 'enumerates all commits in order' do
+      commits = [
+        repo.commit('commit 1', 'me', Date.new),
+        repo.commit('commit 2', 'me', Date.new),
+        repo.commit('commit 3', 'me', Date.new),
+      ]
+
+      expect(repo.history.to_a).to match_array commits.reverse
+    end
+
+    it 'works with no commits' do
+      expect(repo.history.to_a).to be_empty
+    end
+  end
+
 end

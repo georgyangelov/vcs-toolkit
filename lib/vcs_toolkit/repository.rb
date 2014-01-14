@@ -53,6 +53,8 @@ module VCSToolkit
 
       repository.store commit.object_id, commit
       self.head = commit
+
+      commit
     end
 
     ##
@@ -77,6 +79,14 @@ module VCSToolkit
                                            staging_area,
                                            repository,
                                            ignore: ignore
+    end
+
+    ##
+    # Enumerates all commits beginning with head and ending
+    # with the commit that has `parent` == nil.
+    #
+    def history
+      enum_for :yield_history
     end
 
     protected
@@ -128,6 +138,21 @@ module VCSToolkit
     end
 
     private
+
+    def yield_history
+      head = get_object(:head)
+
+      return if head.nil?
+
+      commit_id = head.reference_id
+
+      while commit_id
+        commit = get_object commit_id
+        yield commit
+
+        commit_id = commit.parent
+      end
+    end
 
     def ignored?(path, ignores)
       ignores.any? do |ignore|
