@@ -38,29 +38,42 @@ describe VCSToolkit::Utils::Status do
   end
 
   describe '.compare_tree_and_store' do
-    subject(:status) do
-      VCSToolkit::Utils::Status.compare_tree_and_store tree, file_store, object_store
+    context 'without ignore' do
+      subject(:status) do
+        VCSToolkit::Utils::Status.compare_tree_and_store tree, file_store, object_store
+      end
+
+      it 'detects created files' do
+        expect(status[:created]).to match_array [
+          'README_new.md',
+          'lib/vcs_toolkit/objects/object1.rb',
+        ]
+      end
+
+      it 'detects deleted files' do
+        expect(status[:deleted]).to match_array [
+          'README.md',
+          'lib/vcs_toolkit/objects/object.rb',
+          'lib/vcs_toolkit/utils/memory_store.rb',
+        ]
+      end
+
+      it 'detects changed files' do
+        expect(status[:changed]).to match_array [
+          'lib/vcs_toolkit.rb',
+        ]
+      end
     end
 
-    it 'detects created files' do
-      expect(status[:created]).to match_array [
-        'README_new.md',
-        'lib/vcs_toolkit/objects/object1.rb',
-      ]
-    end
+    context 'with ignore' do
+      it 'ignores files and directories' do
+        expect(tree).to receive(:all_files).with(object_store, ignore: [/_store\.rb$/])
 
-    it 'detects deleted files' do
-      expect(status[:deleted]).to match_array [
-        'README.md',
-        'lib/vcs_toolkit/objects/object.rb',
-        'lib/vcs_toolkit/utils/memory_store.rb',
-      ]
-    end
-
-    it 'detects changed files' do
-      expect(status[:changed]).to match_array [
-        'lib/vcs_toolkit.rb',
-      ]
+        status = VCSToolkit::Utils::Status.compare_tree_and_store tree,
+                                                                  file_store,
+                                                                  object_store,
+                                                                  ignore: [/_store\.rb$/]
+      end
     end
   end
 

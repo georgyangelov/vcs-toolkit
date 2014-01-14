@@ -94,6 +94,19 @@ describe VCSToolkit::Objects::Tree do
         ['bin/vcs',  '123'],
       ]
     end
+
+    it 'can ignore files' do
+      expect(root_tree.all_files(object_store, ignore: ['README', 'vcs']).to_a).to match_array [
+        ['test.txt', '967'],
+      ]
+    end
+
+    it 'can ignore directories' do
+      expect(root_tree.all_files(object_store, ignore: [/^bin/]).to_a).to match_array [
+        ['README',   '987'],
+        ['test.txt', '967'],
+      ]
+    end
   end
 
 end

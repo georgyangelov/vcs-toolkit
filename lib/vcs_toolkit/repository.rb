@@ -73,25 +73,30 @@ module VCSToolkit
     #
     # The return value is a hash with :created, :changed and :deleted keys.
     #
-    def status(commit_id)
-      Utils::Status.compare_tree_and_store get_object(commit_id).tree, repository
+    def status(commit_id, ignore: [])
+      tree   = get_object(get_object(commit_id).tree)
+
+      Utils::Status.compare_tree_and_store tree,
+                                           staging_area,
+                                           repository,
+                                           ignore: ignore
     end
 
     protected
 
-    def create_tree(path='', ignores: [/^\./], **context)
-      files = staging_area.files(path).each_with_object({}) do |file_name, files|
+    def create_tree(path='', ignore: [/^\./], **context)
+      files = staging_area.files(path, ignore: ignore).each_with_object({}) do |file_name, files|
         file_path = concat_path path, file_name
 
-        next if ignored? file_path, ignores or ignored? file_name, ignores
+        next if ignored? file_path, ignore
 
         files[file_name] = blob_class.new content: staging_area.fetch(file_path), **context
       end
 
-      trees = staging_area.directories(path).each_with_object({}) do |dir_name, trees|
+      trees = staging_area.directories(path, ignore: ignore).each_with_object({}) do |dir_name, trees|
         dir_path = concat_path path, dir_name
 
-        next if ignored? dir_path, ignores or ignored? dir_name, ignores
+        next if ignored? dir_path, ignore
 
         trees[dir_name] = create_tree dir_path, **context
       end

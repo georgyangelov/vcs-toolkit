@@ -25,7 +25,8 @@ describe VCSToolkit::FileStore do
     expect { subject.each_directory { }       }.to raise_error(NotImplementedError)
   end
 
-  describe '#all_files' do
+  context 'with each_file and each_directory implementation' do
+
     let(:custom_file_store) do
       filesystem = {
         '' => {
@@ -57,17 +58,75 @@ describe VCSToolkit::FileStore do
       end
     end
 
-    it 'should enumerate all files' do
-      store = custom_file_store.new
+    subject(:store) { custom_file_store.new }
 
-      expect(store.all_files.to_a).to match_array [
-        'README.md',
-        'test.txt',
-        'bin/scv',
-        'lib/scv.rb',
-        'bin/lib/utils.rb',
-      ]
+    describe '#all_files' do
+      it 'should enumerate all files' do
+        expect(store.all_files.to_a).to match_array [
+          'README.md',
+          'test.txt',
+          'bin/scv',
+          'lib/scv.rb',
+          'bin/lib/utils.rb',
+        ]
+      end
+
+      it 'can ignore files' do
+        expect(store.all_files(ignore: [/^s/, 'utils.rb']).to_a).to match_array [
+          'README.md',
+          'test.txt',
+        ]
+      end
+
+      it 'can ignore directories' do
+        expect(store.all_files(ignore: [/^bin/]).to_a).to match_array [
+          'README.md',
+          'test.txt',
+          'lib/scv.rb',
+        ]
+      end
     end
+
+    describe '#files' do
+      it 'enumerates files in the root directory' do
+        expect(store.files.to_a).to match_array [
+          'README.md',
+          'test.txt',
+        ]
+      end
+
+      it 'enumerates files in sub-directories' do
+        expect(store.files('bin').to_a).to match_array [
+          'scv',
+        ]
+      end
+
+      it 'can ignore files' do
+        expect(store.files('bin/lib', ignore: ['utils.rb']).to_a).to match_array []
+      end
+    end
+
+    describe '#directories' do
+      it 'enumerates directories in the root directory' do
+        expect(store.directories.to_a).to match_array [
+          'bin',
+          'lib',
+        ]
+      end
+
+      it 'enumerates directories in sub-directories' do
+        expect(store.directories('bin').to_a).to match_array [
+          'lib',
+        ]
+      end
+
+      it 'can ignore directories' do
+        expect(store.directories(ignore: ['lib'])).to match_array [
+          'bin',
+        ]
+      end
+    end
+
   end
 
 end

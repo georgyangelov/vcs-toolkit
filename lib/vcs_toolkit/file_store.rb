@@ -66,28 +66,40 @@ module VCSToolkit
       file?(path) or directory?(path)
     end
 
-    def files(path='')
-      enum_for :each_file, path
+    def files(path='', ignore: [])
+      enum_for(:each_file, path).reject { |file| ignored? file, ignore }
     end
 
-    def directories(path='')
-      enum_for :each_directory, path
+    def directories(path='', ignore: [])
+      enum_for(:each_directory, path).reject { |file| ignored? file, ignore }
     end
 
-    def all_files(path='')
-      enum_for :yield_all_files, path
+    def all_files(path='', ignore: [])
+      enum_for :yield_all_files, path, ignore: ignore
     end
 
     private
 
-    def yield_all_files(path='', &block)
-      files(path).each &block
+    def yield_all_files(path='', ignore: [], &block)
+      files(path).reject { |path| ignored? path, ignore }.each &block
 
       directories(path).each do |dir_name|
         dir_path = File.join(path, dir_name).sub(/^\/+/, '')
 
-        all_files(dir_path).each do |file_name|
-          yield File.join(dir_name, file_name)
+        all_files(dir_path).each do |file|
+          file_path = File.join(dir_name, file)
+
+          yield file_path unless ignored?(file_path, ignore) or ignored?(file.split('/').last, ignore)
+        end
+      end
+    end
+
+    def ignored?(path, ignores)
+      ignores.any? do |ignore|
+        if ignore.is_a? Regexp
+          ignore =~ path
+        else
+          ignore == path
         end
       end
     end

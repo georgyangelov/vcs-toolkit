@@ -109,13 +109,13 @@ describe VCSToolkit::Repository do
       end
 
       it 'can ignore file names' do
-        tree = repo.send :create_tree, ignores: ['README.md']
+        tree = repo.send :create_tree, ignore: ['README.md']
 
-        expect(tree.files).to be_empty
+        expect(tree.files).to eq({})
       end
 
       it 'can ignore path patterns' do
-        tree = repo.send :create_tree, 'lib/vcs_toolkit/', ignores: [/vcs_toolkit\/utils/]
+        tree = repo.send :create_tree, 'lib/vcs_toolkit/', ignore: [/vcs_toolkit\/utils/]
 
         expect(tree.trees['utils']).to be_nil
         expect(tree.trees['objects']).to be
