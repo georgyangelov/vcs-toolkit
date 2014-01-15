@@ -82,11 +82,46 @@ module VCSToolkit
     end
 
     ##
-    # Enumerates all commits beginning with head and ending
+    # Enumerate all commits beginning with head and ending
     # with the commit that has `parent` == nil.
     #
     def history
       enum_for :yield_history
+    end
+
+    ##
+    # Return a list of changes between a file in the staging area
+    # and a specific commit.
+    #
+    # This method is just a tiny wrapper around VCSToolkit::Diff.from_sequences
+    # which loads the two files and splits them by lines beforehand.
+    # It also ensures that both files have \n at the end (otherwise the last
+    # two lines of the diff may be merged).
+    #
+    def file_difference(file_path, commit_id)
+      file = staging_area.fetch file_path
+
+      if file.nil?
+        file_lines = []
+      else
+        file_lines = file.lines
+        file_lines.last << "\n" unless file_lines.last.end_with? "\n"
+      end
+
+      commit = get_object commit_id
+      tree   = get_object commit.tree
+
+      blob_name_and_id = tree.all_files(repository).find { |file, _| file_path == file }
+
+      if blob_name_and_id.nil?
+        blob_lines = []
+      else
+        blob       = get_object blob_name_and_id.last
+        blob_lines = blob.content.lines
+        blob_lines.last << "\n" unless blob_lines.last.end_with? "\n"
+      end
+
+      Diff.from_sequences blob_lines, file_lines
     end
 
     protected

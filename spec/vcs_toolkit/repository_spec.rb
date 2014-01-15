@@ -170,4 +170,77 @@ describe VCSToolkit::Repository do
     end
   end
 
+  describe '#file_difference' do
+    let(:commit) do
+      double(VCSToolkit::Objects::Commit, object_id: '1234', tree: '2345')
+    end
+
+    let(:tree) do
+      double(VCSToolkit::Objects::Tree, object_id: '2345')
+    end
+
+    let(:blob) do
+      double(VCSToolkit::Objects::Blob, object_id: '3456')
+    end
+
+    before(:each) do
+      repo.instance_variable_set(:@repository, {
+        commit.object_id => commit,
+        tree.object_id   => tree,
+        blob.object_id   => blob,
+      })
+    end
+
+    it 'loads the file contents and passes them to Diff.from_sequences' do
+      tree.stub(:all_files) { {'README' => '1', 'lib/vcs' => '3456', 'spec/lib/vcs' => '1'}.each }
+      blob.stub(:content)   { "ad\ncb\n" }
+
+      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
+
+      expect(VCSToolkit::Diff).to receive(:from_sequences).
+                                  with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
+                                  and_return(:diff_result)
+
+      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+    end
+
+    it 'ensures there is a newline at the end of the files' do
+      tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
+      blob.stub(:content)   { "ad\ncb" }
+
+      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd")
+
+      expect(VCSToolkit::Diff).to receive(:from_sequences).
+                                  with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
+                                  and_return(:diff_result)
+
+      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+    end
+
+    it 'considers a file in the working dir to be empty if it cannot be found' do
+      tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
+      blob.stub(:content)   { "ad\ncb\n" }
+
+      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return(nil)
+
+      expect(VCSToolkit::Diff).to receive(:from_sequences).
+                                  with(["ad\n", "cb\n"], []).
+                                  and_return(:diff_result)
+
+      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+    end
+
+    it 'considers a file in the repository to be empty if it cannot be found' do
+      tree.stub(:all_files) { {}.each }
+
+      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
+
+      expect(VCSToolkit::Diff).to receive(:from_sequences).
+                                  with([], ["ab\n", "cd\n"]).
+                                  and_return(:diff_result)
+
+      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+    end
+  end
+
 end
