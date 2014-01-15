@@ -31,7 +31,7 @@ module VCSToolkit
         end
 
         def id_valid?
-          @object_id == generate_id
+          @id == generate_id
         end
       end
 

@@ -11,7 +11,7 @@ module VCSToolkit
     # of a file's data. The file name is stored
     # with the reference to this object (in a Tree object).
     #
-    # The object_id of the blob is by default its content's hash.
+    # The id of the blob is by default its content's hash.
     #
     # The content is not serialized by default (in Blob.to_hash) because
     # one might decide that content should be
@@ -21,12 +21,12 @@ module VCSToolkit
 
       attr_reader  :content
       hash_on      :content
-      serialize_on :object_id, :object_type
+      serialize_on :id, :object_type
 
-      def initialize(content:, object_id: nil, **context)
+      def initialize(content:, id: nil, **context)
         @content = content
 
-        super object_id:   object_id,
+        super id:          id,
               object_type: :blob,
               **context
       end

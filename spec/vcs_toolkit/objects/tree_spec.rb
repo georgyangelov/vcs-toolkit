@@ -24,24 +24,24 @@ describe VCSToolkit::Objects::Tree do
     end
   end
 
-  context 'without explicit object_id' do
-    it 'has a generated object_id' do
-      expect(tree).to respond_to :object_id
+  context 'without explicit id' do
+    it 'has a generated id' do
+      expect(tree).to respond_to :id
     end
 
     it 'is not named' do
       expect(tree.named?).to eq false
     end
 
-    it 'has a default object_id of the tree content hash' do
+    it 'has a default id of the tree content hash' do
       other_tree = described_class.new files: files, trees: trees
 
-      expect(other_tree.object_id).to eq tree.object_id
+      expect(other_tree.id).to eq tree.id
     end
   end
 
-  context 'with valid explicit object_id' do
-    subject { described_class.new files: files, trees: trees, object_id: tree.object_id }
+  context 'with valid explicit id' do
+    subject { described_class.new files: files, trees: trees, id: tree.id }
 
     it 'does not raise an error' do
       expect { subject }.to_not raise_error
@@ -51,13 +51,13 @@ describe VCSToolkit::Objects::Tree do
   context 'with reordered files and trees' do
     subject { described_class.new files: files_reordered, trees: trees_reordered }
 
-    it 'has the same object_id' do
-      expect(subject.object_id).to eq tree.object_id
+    it 'has the same id' do
+      expect(subject.id).to eq tree.id
     end
   end
 
-  context 'with invalid explicit object_id' do
-    subject { described_class.new files: files, trees: trees, object_id: '1234' }
+  context 'with invalid explicit id' do
+    subject { described_class.new files: files, trees: trees, id: '1234' }
 
     it 'raises an InvalidObjectError' do
       expect { subject }.to raise_error(VCSToolkit::InvalidObjectError)

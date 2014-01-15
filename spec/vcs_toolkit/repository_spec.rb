@@ -35,7 +35,7 @@ describe VCSToolkit::Repository do
 
       expect(commit).to be_a VCSToolkit::Objects::Commit
 
-      expect(object_store).to include(commit.object_id)
+      expect(object_store).to include(commit.id)
       expect(object_store).to include(commit.tree)
 
       expect(commit.message).to eq 'commit message'
@@ -53,14 +53,14 @@ describe VCSToolkit::Repository do
       old_commit = repo.commit 'commit 1', 'me', Date.new
       new_commit = repo.commit 'commit 2', 'me', Date.new
 
-      expect(new_commit.parent).to eq old_commit.object_id
+      expect(new_commit.parent).to eq old_commit.id
     end
 
     it 'updates the head commit' do
       old_commit = repo.commit 'commit 1', 'me', Date.new
       new_commit = repo.commit 'commit 2', 'me', Date.new
 
-      expect(repo.head).to eq new_commit.object_id
+      expect(repo.head).to eq new_commit.id
     end
 
   end
@@ -82,7 +82,7 @@ describe VCSToolkit::Repository do
         tree = repo.send :create_tree
 
         expect(tree).to be_a VCSToolkit::Objects::Tree
-        expect(object_store).to include tree.object_id
+        expect(object_store).to include tree.id
       end
     end
 
@@ -172,22 +172,22 @@ describe VCSToolkit::Repository do
 
   describe '#file_difference' do
     let(:commit) do
-      double(VCSToolkit::Objects::Commit, object_id: '1234', tree: '2345')
+      double(VCSToolkit::Objects::Commit, id: '1234', tree: '2345')
     end
 
     let(:tree) do
-      double(VCSToolkit::Objects::Tree, object_id: '2345')
+      double(VCSToolkit::Objects::Tree, id: '2345')
     end
 
     let(:blob) do
-      double(VCSToolkit::Objects::Blob, object_id: '3456')
+      double(VCSToolkit::Objects::Blob, id: '3456')
     end
 
     before(:each) do
       repo.instance_variable_set(:@repository, {
-        commit.object_id => commit,
-        tree.object_id   => tree,
-        blob.object_id   => blob,
+        commit.id => commit,
+        tree.id   => tree,
+        blob.id   => blob,
       })
     end
 
@@ -201,7 +201,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
     end
 
     it 'ensures there is a newline at the end of the files' do
@@ -214,7 +214,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
     end
 
     it 'considers a file in the working dir to be empty if it cannot be found' do
@@ -227,7 +227,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], []).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
     end
 
     it 'considers a file in the repository to be empty if it cannot be found' do
@@ -239,7 +239,7 @@ describe VCSToolkit::Repository do
                                   with([], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.object_id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
     end
   end
 

@@ -9,13 +9,13 @@ module VCSToolkit
     class Tree < Object
 
       attr_reader  :files, :trees
-      serialize_on :object_id, :object_type, :files, :trees
+      serialize_on :id, :object_type, :files, :trees
 
-      def initialize(files:, trees:, object_id: nil, **context)
+      def initialize(files:, trees:, id: nil, **context)
         @files = files
         @trees = trees
 
-        super object_id:   object_id,
+        super id:          id,
               object_type: :tree,
               **context
       end

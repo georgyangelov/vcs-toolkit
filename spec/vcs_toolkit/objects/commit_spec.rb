@@ -46,30 +46,30 @@ describe VCSToolkit::Objects::Commit do
     end
   end
 
-  context 'without explicit object_id' do
-    it 'has a generated object_id' do
-      expect(commit).to respond_to :object_id
+  context 'without explicit id' do
+    it 'has a generated id' do
+      expect(commit).to respond_to :id
     end
 
-    it 'has a default object_id of the commit content hash' do
+    it 'has a default id of the commit content hash' do
       other_commit = described_class.new message: message,
                                          tree:    tree,
                                          parent:  parent,
                                          author:  author,
                                          date:    date
 
-      expect(commit.object_id).to eq other_commit.object_id
+      expect(commit.id).to eq other_commit.id
     end
   end
 
-  context 'with valid explicit object_id' do
+  context 'with valid explicit id' do
     subject do
       described_class.new message:   message,
                           tree:      tree,
                           parent:    parent,
                           author:    author,
                           date:      date,
-                          object_id: commit.object_id
+                          id:        commit.id
     end
 
     it 'does not raise an error' do
@@ -77,14 +77,14 @@ describe VCSToolkit::Objects::Commit do
     end
   end
 
-  context 'with invalid explicit object_id' do
+  context 'with invalid explicit id' do
     subject do
       described_class.new message:   message,
                           tree:      tree,
                           parent:    parent,
                           author:    author,
                           date:      date,
-                          object_id: '1234'
+                          id:        '1234'
     end
 
     it 'raises an InvalidObjectError' do

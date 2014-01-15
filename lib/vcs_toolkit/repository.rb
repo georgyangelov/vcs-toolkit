@@ -28,7 +28,7 @@ module VCSToolkit
     def head=(commit_or_label_or_object_id)
       case commit_or_label_or_object_id
       when Objects::Commit
-        @head = commit_or_label_or_object_id.object_id
+        @head = commit_or_label_or_object_id.id
       when Objects::Label
         @head = commit_or_label_or_object_id.reference_id
       when String
@@ -46,12 +46,12 @@ module VCSToolkit
       tree = create_tree ignores: ignores, **context
 
       commit = commit_class.new message: message,
-                                tree:    tree.object_id,
+                                tree:    tree.id,
                                 parent:  head,
                                 author:  author,
                                 date:    date
 
-      repository.store commit.object_id, commit
+      repository.store commit.id, commit
       self.head = commit
 
       commit
@@ -144,19 +144,19 @@ module VCSToolkit
       end
 
       files.each do |name, file|
-        repository.store file.object_id, file unless repository.key? file.object_id
+        repository.store file.id, file unless repository.key? file.id
 
-        files[name] = file.object_id
+        files[name] = file.id
       end
       trees.each do |name, tree|
-        trees[name] = tree.object_id
+        trees[name] = tree.id
       end
 
       tree = tree_class.new files: files,
                             trees: trees,
                             **context
 
-      repository.store tree.object_id, tree unless repository.key? tree.object_id
+      repository.store tree.id, tree unless repository.key? tree.id
 
       tree
     end
@@ -167,7 +167,7 @@ module VCSToolkit
     # If the label already exists it is overriden.
     #
     def set_label(name, reference_id)
-      label = label_class.new object_id: name, reference_id: reference_id
+      label = label_class.new id: name, reference_id: reference_id
 
       repository.store name, label
     end
