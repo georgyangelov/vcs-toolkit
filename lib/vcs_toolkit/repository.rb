@@ -99,13 +99,11 @@ module VCSToolkit
     # two lines of the diff may be merged).
     #
     def file_difference(file_path, commit_id)
-      file = staging_area.fetch file_path
-
-      if file.nil?
-        file_lines = []
-      else
-        file_lines = file.lines
+      if staging_area.file? file_path
+        file_lines = staging_area.fetch(file_path).lines
         file_lines.last << "\n" unless file_lines.last.end_with? "\n"
+      else
+        file_lines = []
       end
 
       commit = get_object commit_id

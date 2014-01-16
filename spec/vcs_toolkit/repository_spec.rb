@@ -195,6 +195,7 @@ describe VCSToolkit::Repository do
       tree.stub(:all_files) { {'README' => '1', 'lib/vcs' => '3456', 'spec/lib/vcs' => '1'}.each }
       blob.stub(:content)   { "ad\ncb\n" }
 
+      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
       expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
@@ -208,6 +209,7 @@ describe VCSToolkit::Repository do
       tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
       blob.stub(:content)   { "ad\ncb" }
 
+      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
       expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd")
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
@@ -221,7 +223,7 @@ describe VCSToolkit::Repository do
       tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
       blob.stub(:content)   { "ad\ncb\n" }
 
-      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return(nil)
+      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(false)
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
                                   with(["ad\n", "cb\n"], []).
@@ -233,6 +235,7 @@ describe VCSToolkit::Repository do
     it 'considers a file in the repository to be empty if it cannot be found' do
       tree.stub(:all_files) { {}.each }
 
+      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
       expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
