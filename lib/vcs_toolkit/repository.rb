@@ -122,6 +122,23 @@ module VCSToolkit
       Diff.from_sequences blob_lines, file_lines
     end
 
+    def reset_file(file_path, commit_id, delete_if_new: false)
+      commit = get_object commit_id
+      tree   = get_object commit.tree
+
+      blob_name_and_id = tree.all_files(repository).find { |file, _| file_path == file }
+
+      if blob_name_and_id.nil?
+        raise KeyError, 'File does not exist in the specified commit' unless delete_if_new
+
+        @staging_area.delete_file file_path
+      else
+        blob = get_object blob_name_and_id.last
+
+        @staging_area.store file_path, blob.content
+      end
+    end
+
     protected
 
     def create_tree(path='', ignore: [/^\./], **context)

@@ -8,6 +8,25 @@ describe VCSToolkit::Repository do
 
   subject(:repo) { VCSToolkit::Repository.new object_store, working_dir, staging_area: staging_area }
 
+  # Prepare doubles for the tests that need a commit/tree/blob hierarchy
+  let(:commit) do
+    double(VCSToolkit::Objects::Commit, id: '1234', tree: '2345')
+  end
+
+  let(:tree) do
+    double(VCSToolkit::Objects::Tree, id: '2345')
+  end
+
+  let(:blob) do
+    double(VCSToolkit::Objects::Blob, id: '3456')
+  end
+
+  before(:each) do
+    object_store[commit.id] = commit
+    object_store[tree.id]   = tree
+    object_store[blob.id]   = blob
+  end
+
   it 'has correct getters' do
     expect(repo.repository).to   be object_store
     expect(repo.working_dir).to  be working_dir
@@ -171,32 +190,11 @@ describe VCSToolkit::Repository do
   end
 
   describe '#file_difference' do
-    let(:commit) do
-      double(VCSToolkit::Objects::Commit, id: '1234', tree: '2345')
-    end
-
-    let(:tree) do
-      double(VCSToolkit::Objects::Tree, id: '2345')
-    end
-
-    let(:blob) do
-      double(VCSToolkit::Objects::Blob, id: '3456')
-    end
-
-    before(:each) do
-      repo.instance_variable_set(:@repository, {
-        commit.id => commit,
-        tree.id   => tree,
-        blob.id   => blob,
-      })
-    end
-
     it 'loads the file contents and passes them to Diff.from_sequences' do
-      tree.stub(:all_files) { {'README' => '1', 'lib/vcs' => '3456', 'spec/lib/vcs' => '1'}.each }
+      tree.stub(:all_files) { {'README' => '1', 'lib/vcs' => blob.id, 'spec/lib/vcs' => '1'}.each }
       blob.stub(:content)   { "ad\ncb\n" }
 
-      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
-      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
+      repo.staging_area.store 'lib/vcs', "ab\ncd\n"
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
@@ -206,11 +204,10 @@ describe VCSToolkit::Repository do
     end
 
     it 'ensures there is a newline at the end of the files' do
-      tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
+      tree.stub(:all_files) { {'lib/vcs' => blob.id}.each }
       blob.stub(:content)   { "ad\ncb" }
 
-      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
-      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd")
+      repo.staging_area.store 'lib/vcs', "ab\ncd"
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
@@ -223,8 +220,6 @@ describe VCSToolkit::Repository do
       tree.stub(:all_files) { {'lib/vcs' => '3456'}.each }
       blob.stub(:content)   { "ad\ncb\n" }
 
-      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(false)
-
       expect(VCSToolkit::Diff).to receive(:from_sequences).
                                   with(["ad\n", "cb\n"], []).
                                   and_return(:diff_result)
@@ -235,14 +230,57 @@ describe VCSToolkit::Repository do
     it 'considers a file in the repository to be empty if it cannot be found' do
       tree.stub(:all_files) { {}.each }
 
-      expect(repo.staging_area).to receive(:file?).with('lib/vcs').and_return(true)
-      expect(repo.staging_area).to receive(:fetch).with('lib/vcs').and_return("ab\ncd\n")
+      repo.staging_area.store 'lib/vcs', "ab\ncd\n"
 
       expect(VCSToolkit::Diff).to receive(:from_sequences).
                                   with([], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
       expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
+    end
+  end
+
+  describe '#reset_file' do
+    it 'can reset a deleted file' do
+      tree.stub(:all_files) { {'lib/vcs' => blob.id}.each }
+      blob.stub(:content)   { "file content" }
+
+      repo.reset_file('lib/vcs', commit.id)
+
+      expect(staging_area.file? 'lib/vcs').to be_true
+      expect(staging_area.fetch 'lib/vcs').to eq blob.content
+    end
+
+    it 'can reset a changed file' do
+      tree.stub(:all_files) { {'lib/vcs' => blob.id}.each }
+      blob.stub(:content)   { "file content" }
+
+      staging_area.store 'lib/vcs', 'modified file content'
+
+      repo.reset_file('lib/vcs', commit.id)
+
+      expect(staging_area.fetch 'lib/vcs').to eq blob.content
+    end
+
+    it 'raises an error if the file cannot be found in the commit (by default)' do
+      tree.stub(:all_files) { {}.each }
+
+      staging_area.store 'lib/vcs', 'new file content'
+
+      expect { repo.reset_file('lib/vcs', commit.id) }.to raise_error
+
+      expect(staging_area.file? 'lib/vcs').to be_true
+      expect(staging_area.fetch 'lib/vcs').to eq 'new file content'
+    end
+
+    it 'deletes a new file if delete_if_new is set' do
+      tree.stub(:all_files) { {}.each }
+
+      staging_area.store 'lib/vcs', 'new file content'
+
+      repo.reset_file('lib/vcs', commit.id, delete_if_new: true)
+
+      expect(staging_area.file? 'lib/vcs').to be_false
     end
   end
 
