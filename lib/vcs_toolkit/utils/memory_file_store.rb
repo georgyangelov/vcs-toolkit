@@ -22,6 +22,14 @@ module VCSToolkit
         @files[path] = content
       end
 
+      def delete_file(path)
+        @files.delete sanitize_path(path, false)
+      end
+
+      def delete_dir(path)
+        # Do nothing as the directories are infered from the file paths
+      end
+
       def fetch(path)
         @files.fetch sanitize_path(path, false)
       end

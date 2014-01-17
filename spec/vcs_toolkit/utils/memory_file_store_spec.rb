@@ -104,4 +104,12 @@ describe VCSToolkit::Utils::MemoryFileStore do
     end
   end
 
+  describe '#delete_file' do
+    it 'deletes files' do
+      store.delete_file 'lib/vcs_toolkit/utils/memory_store.rb'
+
+      expect(store.file? 'lib/vcs_toolkit/utils/memory_store.rb').to be_false
+    end
+  end
+
 end

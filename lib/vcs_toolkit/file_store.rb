@@ -21,6 +21,22 @@ module VCSToolkit
     end
 
     ##
+    # Implement this to delete the specified file
+    #
+    def delete_file(path)
+      raise NotImplementedError, 'You must implement FileStore#delete_file'
+    end
+
+    ##
+    # Implement this to delete the specified directory.
+    # This method will be called only on empty directories.
+    # Use #delete if you want to recursively delete a directory.
+    #
+    def delete_dir(path)
+      raise NotImplementedError, 'You must implement FileStore#delete_dir'
+    end
+
+    ##
     # Implement this to detect wether a file with that name exists.
     #
     def file?(path)
@@ -76,6 +92,22 @@ module VCSToolkit
 
     def all_files(path='', ignore: [])
       enum_for :yield_all_files, path, ignore: ignore
+    end
+
+    def delete(path)
+      if directory? path
+        files(path).each do |file|
+          delete_file File.join(path, file)
+        end
+
+        directories(path).each do |directory|
+          delete File.join(path, directory)
+        end
+
+        delete_dir path
+      else
+        delete_file path
+      end
     end
 
     private
