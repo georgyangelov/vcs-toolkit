@@ -28,6 +28,25 @@ module VCSToolkit
         enum_for :yield_all_files, object_store, ignore: ignore
       end
 
+      ##
+      # Finds the object id of a blob or tree by its relative path
+      # to the current tree.
+      #
+      def find(object_store, path)
+        if path.nil? or path.empty? or path == '/'
+          id
+        elsif files.key? path
+          files[path]
+        else
+          dir_name, sub_path = path.split('/', 2)
+
+          return nil unless trees.key? dir_name
+
+          subtree = object_store.fetch trees[dir_name]
+          subtree.find(object_store, sub_path)
+        end
+      end
+
       private
 
       def yield_all_files(object_store, ignore: [], &block)

@@ -10,6 +10,38 @@ describe VCSToolkit::Objects::Tree do
 
   let(:tree) { described_class.new files: files, trees: trees }
 
+  let(:object_store) do
+    {
+      '1' => VCSToolkit::Objects::Tree.new(
+        id:    '1',
+        files: {
+          'README'   => '987',
+          'test.txt' => '967',
+        },
+        trees: {
+          'bin' => '2',
+        },
+        verify_object_id: false
+      ),
+      '2' => VCSToolkit::Objects::Tree.new(
+        id:    '2',
+        files: {
+          'vcs' => '123',
+        },
+        trees: {
+          'cmds' => '3',
+        },
+        verify_object_id: false
+      ),
+      '3' => VCSToolkit::Objects::Tree.new(
+        id:    '3',
+        files: {},
+        trees: {},
+        verify_object_id: false
+      ),
+    }
+  end
+
   context 'interface' do
     it 'has files getter' do
       expect(tree.files).to eq files
@@ -65,26 +97,6 @@ describe VCSToolkit::Objects::Tree do
   end
 
   describe '#all_files' do
-    let(:object_store) do
-      {
-        '1' => VCSToolkit::Objects::Tree.new(
-          files: {
-            'README'   => '987',
-            'test.txt' => '967',
-          },
-          trees: {
-            'bin' => '2',
-          }
-        ),
-        '2' => VCSToolkit::Objects::Tree.new(
-          files: {
-            'vcs' => '123'
-          },
-          trees: {}
-        ),
-      }
-    end
-
     subject(:root_tree) { object_store.fetch '1' }
 
     it 'iterates correctly over all files' do
@@ -106,6 +118,22 @@ describe VCSToolkit::Objects::Tree do
         ['README',   '987'],
         ['test.txt', '967'],
       ]
+    end
+  end
+
+  describe '#find' do
+    subject(:root_tree) { object_store.fetch '1' }
+
+    it 'can find the object id of a blob' do
+      expect(root_tree.find(object_store, 'bin/vcs')).to eq '123'
+    end
+
+    it 'can find the object id of a tree' do
+      expect(root_tree.find(object_store, 'bin/cmds')).to eq '3'
+    end
+
+    it 'returns nil if the file/dir cannot be found' do
+      expect(root_tree.find(object_store, 'can/haz/burger')).to be_nil
     end
   end
 
