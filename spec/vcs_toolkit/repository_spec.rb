@@ -3,22 +3,23 @@ require 'spec_helper'
 describe VCSToolkit::Repository do
 
   let(:object_store) { {} }
-  let(:working_dir)  { VCSToolkit::Utils::MemoryFileStore.new }
   let(:staging_area) { VCSToolkit::Utils::MemoryFileStore.new }
 
-  subject(:repo) { VCSToolkit::Repository.new object_store, working_dir, staging_area: staging_area }
+  subject(:repo) do
+    VCSToolkit::Repository.new object_store, staging_area
+  end
 
   # Prepare doubles for the tests that need a commit/tree/blob hierarchy
   let(:commit) do
-    double(VCSToolkit::Objects::Commit, id: '1234', tree: '2345')
+    double(VCSToolkit::Objects::Commit, id: '1234', tree: '2345', object_type: :commit)
   end
 
   let(:tree) do
-    double(VCSToolkit::Objects::Tree, id: '2345')
+    double(VCSToolkit::Objects::Tree, id: '2345', object_type: :tree)
   end
 
   let(:blob) do
-    double(VCSToolkit::Objects::Blob, id: '3456')
+    double(VCSToolkit::Objects::Blob, id: '3456', object_type: :blob)
   end
 
   before(:each) do
@@ -29,14 +30,14 @@ describe VCSToolkit::Repository do
 
   it 'has correct getters' do
     expect(repo.repository).to   be object_store
-    expect(repo.working_dir).to  be working_dir
+    expect(repo.working_dir).to  be staging_area
     expect(repo.staging_area).to be staging_area
   end
 
   it 'has a staging area that defaults to the working directory' do
-    repo = VCSToolkit::Repository.new object_store, working_dir
+    repo = VCSToolkit::Repository.new object_store, staging_area
 
-    expect(repo.staging_area).to be working_dir
+    expect(repo.staging_area).to be staging_area
   end
 
   it 'has correct defaults for the object classes' do
@@ -87,7 +88,7 @@ describe VCSToolkit::Repository do
   describe '#create_tree' do
 
     context 'with empty staging area' do
-      subject(:repo) { VCSToolkit::Repository.new(object_store, working_dir) }
+      subject(:repo) { VCSToolkit::Repository.new(object_store, VCSToolkit::Utils::MemoryFileStore.new) }
 
       it 'creates a valid tree' do
         tree = repo.send :create_tree
@@ -106,7 +107,7 @@ describe VCSToolkit::Repository do
     end
 
     context 'with non-empty staging area' do
-      let(:nonempty_working_dir) do
+      let(:staging) do
         VCSToolkit::Utils::MemoryFileStore.new({
           'README.md'                             => 'This is a readme file',
           'lib/vcs_toolkit.rb'                    => 'require ...',
@@ -115,7 +116,10 @@ describe VCSToolkit::Repository do
           'lib/vcs_toolkit/objects/object.rb'     => 'class Object',
         })
       end
-      subject(:repo) { VCSToolkit::Repository.new(object_store, nonempty_working_dir) }
+
+      subject(:repo) do
+        VCSToolkit::Repository.new object_store, staging
+      end
 
       it 'creates a valid tree' do
         tree = repo.send :create_tree
@@ -240,47 +244,61 @@ describe VCSToolkit::Repository do
     end
   end
 
-  describe '#reset_file' do
-    it 'can reset a deleted file' do
-      tree.stub(:all_files) { {'lib/vcs' => blob.id}.each }
+  describe '#restore_file' do
+    it 'can restore a deleted file' do
+      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
 
-      repo.reset_file('lib/vcs', commit.id)
+      repo.restore('lib/vcs', commit.id)
 
       expect(staging_area.file? 'lib/vcs').to be_true
       expect(staging_area.fetch 'lib/vcs').to eq blob.content
     end
 
-    it 'can reset a changed file' do
-      tree.stub(:all_files) { {'lib/vcs' => blob.id}.each }
+    it 'can restore a changed file' do
+      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
 
       staging_area.store 'lib/vcs', 'modified file content'
 
-      repo.reset_file('lib/vcs', commit.id)
+      repo.restore('lib/vcs', commit.id)
 
       expect(staging_area.fetch 'lib/vcs').to eq blob.content
     end
 
-    it 'raises an error if the file cannot be found in the commit (by default)' do
-      tree.stub(:all_files) { {}.each }
+    it 'can restore directories' do
+      staging = VCSToolkit::Utils::MemoryFileStore.new({
+        'README.md'                             => 'old README',
+        'lib/vcs_toolkit.rb'                    => 'class VCSToolkit',
+        'lib/vcs_toolkit/utils/memory_store.rb' => 'class MemoryStore',
+        'lib/vcs_toolkit/utils/object_store.rb' => 'class ObjectStore',
+        'lib/vcs_toolkit/objects/object.rb'     => 'class Object',
+      })
+
+      repo = VCSToolkit::Repository.new object_store, staging
+      repo.commit 'test', 'me', Date.new
+
+      staging.store  'README', 'new README'
+      staging.store  'lib/vcs_toolkit/objects/object.rb', 'modified Object'
+      staging.delete 'lib/vcs_toolkit/utils'
+
+      repo.restore 'lib/vcs_toolkit', repo[:head].reference_id
+
+      expect(staging.fetch 'README').to eq 'new README'
+      expect(staging.fetch 'lib/vcs_toolkit/objects/object.rb').to eq 'class Object'
+      expect(staging.fetch 'lib/vcs_toolkit/utils/memory_store.rb').to eq 'class MemoryStore'
+      expect(staging.fetch 'lib/vcs_toolkit/utils/object_store.rb').to eq 'class ObjectStore'
+    end
+
+    it 'raises an error if the file cannot be found in the commit' do
+      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { nil }
 
       staging_area.store 'lib/vcs', 'new file content'
 
-      expect { repo.reset_file('lib/vcs', commit.id) }.to raise_error
+      expect { repo.restore('lib/vcs', commit.id) }.to raise_error
 
       expect(staging_area.file? 'lib/vcs').to be_true
       expect(staging_area.fetch 'lib/vcs').to eq 'new file content'
-    end
-
-    it 'deletes a new file if delete_if_new is set' do
-      tree.stub(:all_files) { {}.each }
-
-      staging_area.store 'lib/vcs', 'new file content'
-
-      repo.reset_file('lib/vcs', commit.id, delete_if_new: true)
-
-      expect(staging_area.file? 'lib/vcs').to be_false
     end
   end
 

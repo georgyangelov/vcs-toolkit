@@ -24,7 +24,6 @@ module VCSToolkit
       self.head = head if head
     end
 
-    # TODO: This should resolve more levels of references
     def head=(commit_or_label_or_object_id)
       case commit_or_label_or_object_id
       when Objects::Commit
@@ -49,7 +48,8 @@ module VCSToolkit
                                 tree:    tree.id,
                                 parent:  head,
                                 author:  author,
-                                date:    date
+                                date:    date,
+                                **context
 
       repository.store commit.id, commit
       self.head = commit
@@ -122,21 +122,35 @@ module VCSToolkit
       Diff.from_sequences blob_lines, file_lines
     end
 
-    def reset_file(file_path, commit_id, delete_if_new: false)
-      commit = get_object commit_id
-      tree   = get_object commit.tree
+    def restore(path='', commit_id, ignore: [])
+      commit     = get_object commit_id
+      tree       = get_object commit.tree
+      object_id  = tree.find(repository, path)
 
-      blob_name_and_id = tree.all_files(repository).find { |file, _| file_path == file }
+      raise KeyError, 'File does not exist in the specified commit' if object_id.nil?
 
-      if blob_name_and_id.nil?
-        raise KeyError, 'File does not exist in the specified commit' unless delete_if_new
+      blob_or_tree = get_object object_id
 
-        @staging_area.delete_file file_path
+      case blob_or_tree.object_type
+      when :blob
+        restore_file path, blob_or_tree
+      when :tree
+        restore_directory path, blob_or_tree
       else
-        blob = get_object blob_name_and_id.last
-
-        @staging_area.store file_path, blob.content
+        raise 'Unknown object type returned by Tree#find'
       end
+    end
+
+    private
+
+    def restore_directory(path, tree)
+      tree.all_files(repository).each do |file, blob_id|
+        restore_file File.join(path, file), get_object(blob_id)
+      end
+    end
+
+    def restore_file(path, blob)
+      staging_area.store path, blob.content
     end
 
     protected

@@ -135,6 +135,14 @@ describe VCSToolkit::Objects::Tree do
     it 'returns nil if the file/dir cannot be found' do
       expect(root_tree.find(object_store, 'can/haz/burger')).to be_nil
     end
+
+    it 'returns the current tree if the path is empty' do
+      expect(root_tree.find(object_store, '')).to eq root_tree.id
+    end
+
+    it 'returns the current tree if the path is .' do
+      expect(root_tree.find(object_store, '.')).to eq root_tree.id
+    end
   end
 
 end

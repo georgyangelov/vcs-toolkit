@@ -33,7 +33,7 @@ module VCSToolkit
       # to the current tree.
       #
       def find(object_store, path)
-        if path.nil? or path.empty? or path == '/'
+        if [nil, '', '/', '.'].include? path
           id
         elsif files.key? path
           files[path]
