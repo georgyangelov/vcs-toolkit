@@ -29,8 +29,7 @@ describe VCSToolkit::Repository do
   end
 
   it 'has correct getters' do
-    expect(repo.repository).to   be object_store
-    expect(repo.working_dir).to  be staging_area
+    expect(repo.object_store).to be object_store
     expect(repo.staging_area).to be staging_area
   end
 
@@ -246,7 +245,7 @@ describe VCSToolkit::Repository do
 
   describe '#restore_file' do
     it 'can restore a deleted file' do
-      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { blob.id }
+      expect(tree).to receive(:find).with(repo.object_store, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
 
       repo.restore('lib/vcs', commit.id)
@@ -256,7 +255,7 @@ describe VCSToolkit::Repository do
     end
 
     it 'can restore a changed file' do
-      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { blob.id }
+      expect(tree).to receive(:find).with(repo.object_store, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
 
       staging_area.store 'lib/vcs', 'modified file content'
@@ -291,7 +290,7 @@ describe VCSToolkit::Repository do
     end
 
     it 'raises an error if the file cannot be found in the commit' do
-      expect(tree).to receive(:find).with(repo.repository, 'lib/vcs') { nil }
+      expect(tree).to receive(:find).with(repo.object_store, 'lib/vcs') { nil }
 
       staging_area.store 'lib/vcs', 'new file content'
 

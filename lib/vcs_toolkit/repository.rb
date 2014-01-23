@@ -1,19 +1,17 @@
 module VCSToolkit
 
   class Repository
-    attr_reader :repository, :working_dir, :staging_area,
+    attr_reader :object_store, :staging_area,
                 :commit_class, :tree_class, :blob_class, :label_class
 
     attr_accessor :head
 
-    def initialize(repository, working_dir, staging_area: working_dir,
-                                            head:         nil,
-                                            commit_class: Objects::Commit,
-                                            tree_class:   Objects::Tree,
-                                            blob_class:   Objects::Blob,
-                                            label_class:  Objects::Label)
-      @repository   = repository
-      @working_dir  = working_dir
+    def initialize(object_store, staging_area, head:         nil,
+                                               commit_class: Objects::Commit,
+                                               tree_class:   Objects::Tree,
+                                               blob_class:   Objects::Blob,
+                                               label_class:  Objects::Label)
+      @object_store = object_store
       @staging_area = staging_area
 
       @commit_class = commit_class
@@ -51,7 +49,7 @@ module VCSToolkit
                                 date:    date,
                                 **context
 
-      repository.store commit.id, commit
+      object_store.store commit.id, commit
       self.head = commit
 
       commit
@@ -61,7 +59,7 @@ module VCSToolkit
     # Return the object with this object_id or nil if it doesn't exist.
     #
     def get_object(object_id)
-      repository.fetch object_id if repository.key? object_id
+      object_store.fetch object_id if object_store.key? object_id
     end
 
     alias_method :[], :get_object
@@ -77,7 +75,7 @@ module VCSToolkit
 
       Utils::Status.compare_tree_and_store tree,
                                            staging_area,
-                                           repository,
+                                           object_store,
                                            ignore: ignore
     end
 
@@ -109,7 +107,7 @@ module VCSToolkit
       commit = get_object commit_id
       tree   = get_object commit.tree
 
-      blob_name_and_id = tree.all_files(repository).find { |file, _| file_path == file }
+      blob_name_and_id = tree.all_files(object_store).find { |file, _| file_path == file }
 
       if blob_name_and_id.nil?
         blob_lines = []
@@ -125,7 +123,7 @@ module VCSToolkit
     def restore(path='', commit_id, ignore: [])
       commit     = get_object commit_id
       tree       = get_object commit.tree
-      object_id  = tree.find(repository, path)
+      object_id  = tree.find(object_store, path)
 
       raise KeyError, 'File does not exist in the specified commit' if object_id.nil?
 
@@ -144,7 +142,7 @@ module VCSToolkit
     private
 
     def restore_directory(path, tree)
-      tree.all_files(repository).each do |file, blob_id|
+      tree.all_files(object_store).each do |file, blob_id|
         restore_file File.join(path, file), get_object(blob_id)
       end
     end
@@ -173,7 +171,7 @@ module VCSToolkit
       end
 
       files.each do |name, file|
-        repository.store file.id, file unless repository.key? file.id
+        object_store.store file.id, file unless object_store.key? file.id
 
         files[name] = file.id
       end
@@ -185,7 +183,7 @@ module VCSToolkit
                             trees: trees,
                             **context
 
-      repository.store tree.id, tree unless repository.key? tree.id
+      object_store.store tree.id, tree unless object_store.key? tree.id
 
       tree
     end
@@ -198,7 +196,7 @@ module VCSToolkit
     def set_label(name, reference_id)
       label = label_class.new id: name, reference_id: reference_id
 
-      repository.store name, label
+      object_store.store name, label
     end
 
     private
