@@ -114,7 +114,7 @@ module VCSToolkit
       else
         blob       = get_object blob_name_and_id.last
         blob_lines = blob.content.lines
-        blob_lines.last << "\n" unless blob_lines.last.end_with? "\n"
+        blob_lines.last << "\n" unless blob_lines.last.nil? or blob_lines.last.end_with? "\n"
       end
 
       Diff.from_sequences blob_lines, file_lines
