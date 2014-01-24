@@ -172,6 +172,20 @@ describe VCSToolkit::Repository do
 
       expect(VCSToolkit::Utils::Status).to receive(:compare_tree_and_store).and_return(files)
       allow(repo).to receive(:get_object) { double(tree: 'tree') }
+      expect(repo.status('some id')).to eq files
+    end
+
+    it 'passes nil as the tree if there are no commits' do
+      files = {
+        created: %w(f1 f2 f3),
+        changed: [],
+        deleted: [],
+      }
+
+      expect(VCSToolkit::Utils::Status).to receive(:compare_tree_and_store).
+        with(nil, staging_area, object_store, ignore: []).
+        and_return(files)
+
       expect(repo.status(nil)).to eq files
     end
   end

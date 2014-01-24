@@ -71,7 +71,7 @@ module VCSToolkit
     # The return value is a hash with :created, :changed and :deleted keys.
     #
     def status(commit_id, ignore: [])
-      tree   = get_object(get_object(commit_id).tree)
+      tree = get_object(get_object(commit_id).tree) unless commit_id.nil?
 
       Utils::Status.compare_tree_and_store tree,
                                            staging_area,

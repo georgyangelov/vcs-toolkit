@@ -75,6 +75,23 @@ describe VCSToolkit::Utils::Status do
                                                                   ignore: [/_store\.rb$/]
       end
     end
+
+    context 'with nil tree' do
+      subject(:status) do
+        VCSToolkit::Utils::Status.compare_tree_and_store nil, file_store, object_store
+      end
+
+      it 'detects all files as new' do
+        expect(status[:deleted]).to be_empty
+        expect(status[:changed]).to be_empty
+        expect(status[:created]).to match_array [
+          'README_new.md',
+          'lib/vcs_toolkit.rb',
+          'lib/vcs_toolkit/utils/object_store.rb',
+          'lib/vcs_toolkit/objects/object1.rb',
+        ]
+      end
+    end
   end
 
 end
