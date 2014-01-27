@@ -3,14 +3,14 @@ module VCSToolkit
 
     class Commit < Object
 
-      attr_reader  :message, :tree, :parent, :author, :date
-      hash_on      :message, :tree, :parent, :author, :date
-      serialize_on :id, :object_type, :message, :tree, :parent, :author, :date
+      attr_reader  :message, :tree, :parents, :author, :date
+      hash_on      :message, :tree, :parents, :author, :date
+      serialize_on :id, :object_type, :message, :tree, :parents, :author, :date
 
-      def initialize(message:, tree:, parent:, author:, date:, id: nil, **context)
+      def initialize(message:, tree:, parents:, author:, date:, id: nil, **context)
         @message = message
         @tree    = tree
-        @parent  = parent
+        @parents = parents
         @author  = author
         @date    = date
 

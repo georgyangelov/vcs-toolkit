@@ -62,17 +62,17 @@ describe VCSToolkit::Repository do
       expect(commit.date).to    eq now
     end
 
-    it 'has nil parent of the first commit' do
+    it 'has empty parent list of the first commit' do
       commit = repo.commit 'commit message', 'me', Date.new
 
-      expect(commit.parent).to be nil
+      expect(commit.parents).to be_empty
     end
 
     it 'sets the correct parent' do
       old_commit = repo.commit 'commit 1', 'me', Date.new
       new_commit = repo.commit 'commit 2', 'me', Date.new
 
-      expect(new_commit.parent).to eq old_commit.id
+      expect(new_commit.parents).to match_array [old_commit.id]
     end
 
     it 'updates the head commit' do
@@ -80,6 +80,13 @@ describe VCSToolkit::Repository do
       new_commit = repo.commit 'commit 2', 'me', Date.new
 
       expect(repo.head).to eq new_commit.id
+    end
+
+    it 'can accept parent list override parameter' do
+      old_commit = repo.commit 'commit 1', 'me', Date.new
+      new_commit = repo.commit 'commit 2', 'me', Date.new, parents: ['1234']
+
+      expect(new_commit.parents).to match_array ['1234']
     end
 
   end
@@ -203,6 +210,41 @@ describe VCSToolkit::Repository do
 
     it 'works with no commits' do
       expect(repo.history.to_a).to be_empty
+    end
+
+    it 'enumerates commits with multiple parents' do
+      repo.commit('commit 1a', 'me', Date.new)
+      branch1 = repo.commit('commit 1b', 'me', Date.new)
+
+      repo.head = nil
+      repo.commit('commit 2a', 'me', Date.new)
+      branch2 = repo.commit('commit 2b', 'me', Date.new)
+
+      repo.commit('commit 3', 'me', Date.new, parents: [branch1.id, branch2.id])
+
+      history = repo.history.map(&:message)
+      expect(history).to match_array [
+        'commit 1a',
+        'commit 1b',
+        'commit 2a',
+        'commit 2b',
+        'commit 3',
+      ]
+      expect(history.first).to eq 'commit 3'
+    end
+
+    it 'returns a commit only once' do
+      base    = repo.commit('commit 1',  'me', Date.new, parents: [])
+      branch1 = repo.commit('commit 2a', 'me', Date.new, parents: [base.id])
+      branch2 = repo.commit('commit 2b', 'me', Date.new, parents: [base.id])
+      merge   = repo.commit('commit 3',  'me', Date.new, parents: [branch1.id, branch2.id])
+
+      expect(repo.history.map(&:message)).to match_array [
+        'commit 1',
+        'commit 2a',
+        'commit 2b',
+        'commit 3',
+      ]
     end
   end
 

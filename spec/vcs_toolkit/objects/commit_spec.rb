@@ -2,16 +2,16 @@ require 'spec_helper'
 
 describe VCSToolkit::Objects::Commit do
 
-  let(:tree)    { 'tree_id'           }
-  let(:parent)  { 'parent_commit_id'  }
-  let(:author)  { 'Chuck Norris'      }
-  let(:message) { 'Bring world peace' }
-  let(:date)    { Date.new            }
+  let(:tree)    { 'tree_id'              }
+  let(:parents) { ['parent1', 'parent2'] }
+  let(:author)  { 'Chuck Norris'         }
+  let(:message) { 'Bring world peace'    }
+  let(:date)    { Date.new               }
 
   let(:commit) do
     described_class.new message: message,
                         tree:    tree,
-                        parent:  parent,
+                        parents: parents,
                         author:  author,
                         date:    date
   end
@@ -25,8 +25,8 @@ describe VCSToolkit::Objects::Commit do
       expect(commit.tree).to eq tree
     end
 
-    it 'has parent getter' do
-      expect(commit.parent).to eq parent
+    it 'has parents getter' do
+      expect(commit.parents).to match_array parents
     end
 
     it 'has author getter' do
@@ -54,7 +54,7 @@ describe VCSToolkit::Objects::Commit do
     it 'has a default id of the commit content hash' do
       other_commit = described_class.new message: message,
                                          tree:    tree,
-                                         parent:  parent,
+                                         parents: parents,
                                          author:  author,
                                          date:    date
 
@@ -66,7 +66,7 @@ describe VCSToolkit::Objects::Commit do
     subject do
       described_class.new message:   message,
                           tree:      tree,
-                          parent:    parent,
+                          parents:   parents,
                           author:    author,
                           date:      date,
                           id:        commit.id
@@ -81,7 +81,7 @@ describe VCSToolkit::Objects::Commit do
     subject do
       described_class.new message:   message,
                           tree:      tree,
-                          parent:    parent,
+                          parents:   parents,
                           author:    author,
                           date:      date,
                           id:        '1234'

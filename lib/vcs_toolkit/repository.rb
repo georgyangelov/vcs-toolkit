@@ -39,12 +39,14 @@ module VCSToolkit
       set_label :head, head
     end
 
-    def commit(message, author, date, ignores: [], **context)
+    def commit(message, author, date, ignores: [], parents: nil, **context)
       tree = create_tree ignores: ignores, **context
+
+      parents = head.nil? ? [] : [head] if parents.nil?
 
       commit = commit_class.new message: message,
                                 tree:    tree.id,
-                                parent:  head,
+                                parents: parents,
                                 author:  author,
                                 date:    date,
                                 **context
@@ -81,10 +83,31 @@ module VCSToolkit
 
     ##
     # Enumerate all commits beginning with head and ending
-    # with the commit that has `parent` == nil.
+    # with the commits that have empty `parents` list.
+    #
+    # They aren't strictly ordered by date, but in a BFS visit order.
     #
     def history
-      enum_for :yield_history
+      return [] if head.nil?
+
+      start_commit = get_object(head)
+      commits      = {start_commit.id => start_commit}
+      commit_queue = [start_commit]
+
+      until commit_queue.empty?
+        commit = commit_queue.shift
+
+        commit.parents.each do |parent_id|
+          unless commits.key? parent_id
+            parent = get_object parent_id
+
+            commits[parent_id] = parent
+            commit_queue << parent
+          end
+        end
+      end
+
+      commits.values
     end
 
     ##
@@ -200,21 +223,6 @@ module VCSToolkit
     end
 
     private
-
-    def yield_history
-      head = get_object(:head)
-
-      return if head.nil?
-
-      commit_id = head.reference_id
-
-      while commit_id
-        commit = get_object commit_id
-        yield commit
-
-        commit_id = commit.parent
-      end
-    end
 
     def ignored?(path, ignores)
       ignores.any? do |ignore|
