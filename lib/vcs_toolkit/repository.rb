@@ -4,7 +4,7 @@ module VCSToolkit
     attr_reader :object_store, :staging_area,
                 :commit_class, :tree_class, :blob_class, :label_class
 
-    attr_accessor :head
+    attr_accessor :head, :branch_head
 
     def initialize(object_store, staging_area, head:         nil,
                                                commit_class: Objects::Commit,
@@ -22,27 +22,41 @@ module VCSToolkit
       self.head = head if head
     end
 
-    def head=(commit_or_label_or_object_id)
-      case commit_or_label_or_object_id
-      when Objects::Commit
-        @head = commit_or_label_or_object_id.id
+    def head=(label_or_id)
+      case label_or_id
       when Objects::Label
-        @head = commit_or_label_or_object_id.reference_id
+        @head = label_or_id.id
       when String
-        @head = commit_or_label_or_object_id
+        @head = label_or_id
       when nil
-        # Ignore as this will be the start of a new era
+        # Ignore. There is no current branch
       else
         raise UnknownLabelError
       end
 
-      set_label :head, head
+      @branch_head = get_object(@head).reference_id
+      set_label :head, @head
+    end
+
+    def branch_head=(commit_or_id)
+      case commit_or_id
+      when Objects::Commit
+        @branch_head = commit_or_id.id
+      when String
+        @branch_head = commit_or_id
+      when nil
+        # Ignore. The current branch has no commits
+      else
+        raise UnknownLabelError
+      end
+
+      set_label head, @branch_head if head
     end
 
     def commit(message, author, date, ignores: [], parents: nil, **context)
       tree = create_tree ignores: ignores, **context
 
-      parents = head.nil? ? [] : [head] if parents.nil?
+      parents = branch_head.nil? ? [] : [branch_head] if parents.nil?
 
       commit = commit_class.new message: message,
                                 tree:    tree.id,
@@ -52,7 +66,7 @@ module VCSToolkit
                                 **context
 
       object_store.store commit.id, commit
-      self.head = commit
+      self.branch_head = commit
 
       commit
     end
@@ -82,15 +96,15 @@ module VCSToolkit
     end
 
     ##
-    # Enumerate all commits beginning with head and ending
+    # Enumerate all commits beginning with branch_head and ending
     # with the commits that have empty `parents` list.
     #
     # They aren't strictly ordered by date, but in a BFS visit order.
     #
     def history
-      return [] if head.nil?
+      return [] if branch_head.nil?
 
-      start_commit = get_object(head)
+      start_commit = get_object(branch_head)
       commits      = {start_commit.id => start_commit}
       commit_queue = [start_commit]
 

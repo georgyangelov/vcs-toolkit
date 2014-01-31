@@ -75,11 +75,11 @@ describe VCSToolkit::Repository do
       expect(new_commit.parents).to match_array [old_commit.id]
     end
 
-    it 'updates the head commit' do
+    it 'updates the branch head commit' do
       old_commit = repo.commit 'commit 1', 'me', Date.new
       new_commit = repo.commit 'commit 2', 'me', Date.new
 
-      expect(repo.head).to eq new_commit.id
+      expect(repo.branch_head).to eq new_commit.id
     end
 
     it 'can accept parent list override parameter' do
@@ -216,7 +216,7 @@ describe VCSToolkit::Repository do
       repo.commit('commit 1a', 'me', Date.new)
       branch1 = repo.commit('commit 1b', 'me', Date.new)
 
-      repo.head = nil
+      repo.branch_head = nil
       repo.commit('commit 2a', 'me', Date.new)
       branch2 = repo.commit('commit 2b', 'me', Date.new)
 
@@ -337,7 +337,7 @@ describe VCSToolkit::Repository do
       staging.store  'lib/vcs_toolkit/objects/object.rb', 'modified Object'
       staging.delete 'lib/vcs_toolkit/utils'
 
-      repo.restore 'lib/vcs_toolkit', repo[:head].reference_id
+      repo.restore 'lib/vcs_toolkit', repo.branch_head
 
       expect(staging.fetch 'README').to eq 'new README'
       expect(staging.fetch 'lib/vcs_toolkit/objects/object.rb').to eq 'class Object'
