@@ -174,6 +174,17 @@ module VCSToolkit
       end
     end
 
+    ##
+    # Creates a label (named object) pointing to `reference_id`
+    #
+    # If the label already exists it is overriden.
+    #
+    def set_label(name, reference_id)
+      label = label_class.new id: name, reference_id: reference_id
+
+      object_store.store name, label
+    end
+
     private
 
     def restore_directory(path, tree)
@@ -221,17 +232,6 @@ module VCSToolkit
       object_store.store tree.id, tree unless object_store.key? tree.id
 
       tree
-    end
-
-    ##
-    # Creates a label (named object) pointing to `reference_id`
-    #
-    # If the label already exists it is overriden.
-    #
-    def set_label(name, reference_id)
-      label = label_class.new id: name, reference_id: reference_id
-
-      object_store.store name, label
     end
 
     private
