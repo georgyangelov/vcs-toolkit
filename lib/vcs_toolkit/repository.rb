@@ -157,7 +157,7 @@ module VCSToolkit
       Diff.from_sequences blob_lines, file_lines
     end
 
-    def restore(path='', commit_id, ignore: [])
+    def restore(path='', commit_id)
       commit     = get_object commit_id
       tree       = get_object commit.tree
       object_id  = tree.find(object_store, path)
