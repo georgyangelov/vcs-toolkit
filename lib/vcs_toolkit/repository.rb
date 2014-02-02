@@ -86,8 +86,8 @@ module VCSToolkit
     #
     # The return value is a hash with :created, :changed and :deleted keys.
     #
-    def status(commit_id, ignore: [])
-      tree = get_object(get_object(commit_id).tree) unless commit_id.nil?
+    def status(commit, ignore: [])
+      tree = get_object(commit.tree) unless commit.nil?
 
       Utils::Status.compare_tree_and_store tree,
                                            staging_area,
@@ -133,7 +133,7 @@ module VCSToolkit
     # It also ensures that both files have \n at the end (otherwise the last
     # two lines of the diff may be merged).
     #
-    def file_difference(file_path, commit_id)
+    def file_difference(file_path, commit)
       if staging_area.file? file_path
         file_lines = staging_area.fetch(file_path).lines
         file_lines.last << "\n" unless file_lines.last.end_with? "\n"
@@ -141,7 +141,6 @@ module VCSToolkit
         file_lines = []
       end
 
-      commit = get_object commit_id
       tree   = get_object commit.tree
 
       blob_name_and_id = tree.all_files(object_store).find { |file, _| file_path == file }
@@ -157,8 +156,7 @@ module VCSToolkit
       Diff.from_sequences blob_lines, file_lines
     end
 
-    def restore(path='', commit_id)
-      commit     = get_object commit_id
+    def restore(path='', commit)
       tree       = get_object commit.tree
       object_id  = tree.find(object_store, path)
 

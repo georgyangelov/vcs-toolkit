@@ -178,8 +178,7 @@ describe VCSToolkit::Repository do
       }
 
       expect(VCSToolkit::Utils::Status).to receive(:compare_tree_and_store).and_return(files)
-      allow(repo).to receive(:get_object) { double(tree: 'tree') }
-      expect(repo.status('some id')).to eq files
+      expect(repo.status(double(tree: 'tree'))).to eq files
     end
 
     it 'passes nil as the tree if there are no commits' do
@@ -259,7 +258,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit)).to eq :diff_result
     end
 
     it 'ensures there is a newline at the end of the files' do
@@ -272,7 +271,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit)).to eq :diff_result
     end
 
     it 'considers a file in the working dir to be empty if it cannot be found' do
@@ -283,7 +282,7 @@ describe VCSToolkit::Repository do
                                   with(["ad\n", "cb\n"], []).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit)).to eq :diff_result
     end
 
     it 'considers a file in the repository to be empty if it cannot be found' do
@@ -295,7 +294,7 @@ describe VCSToolkit::Repository do
                                   with([], ["ab\n", "cd\n"]).
                                   and_return(:diff_result)
 
-      expect(repo.file_difference('lib/vcs', commit.id)).to eq :diff_result
+      expect(repo.file_difference('lib/vcs', commit)).to eq :diff_result
     end
   end
 
@@ -304,7 +303,7 @@ describe VCSToolkit::Repository do
       expect(tree).to receive(:find).with(repo.object_store, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
 
-      repo.restore('lib/vcs', commit.id)
+      repo.restore('lib/vcs', commit)
 
       expect(staging_area.file? 'lib/vcs').to be_true
       expect(staging_area.fetch 'lib/vcs').to eq blob.content
@@ -316,7 +315,7 @@ describe VCSToolkit::Repository do
 
       staging_area.store 'lib/vcs', 'modified file content'
 
-      repo.restore('lib/vcs', commit.id)
+      repo.restore('lib/vcs', commit)
 
       expect(staging_area.fetch 'lib/vcs').to eq blob.content
     end
@@ -337,7 +336,7 @@ describe VCSToolkit::Repository do
       staging.store  'lib/vcs_toolkit/objects/object.rb', 'modified Object'
       staging.delete 'lib/vcs_toolkit/utils'
 
-      repo.restore 'lib/vcs_toolkit', repo.branch_head
+      repo.restore 'lib/vcs_toolkit', repo[repo.branch_head]
 
       expect(staging.fetch 'README').to eq 'new README'
       expect(staging.fetch 'lib/vcs_toolkit/objects/object.rb').to eq 'class Object'
@@ -350,7 +349,7 @@ describe VCSToolkit::Repository do
 
       staging_area.store 'lib/vcs', 'new file content'
 
-      expect { repo.restore('lib/vcs', commit.id) }.to raise_error
+      expect { repo.restore('lib/vcs', commit) }.to raise_error
 
       expect(staging_area.file? 'lib/vcs').to be_true
       expect(staging_area.fetch 'lib/vcs').to eq 'new file content'
