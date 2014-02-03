@@ -96,6 +96,22 @@ module VCSToolkit
     end
 
     ##
+    # Return new, changed and deleted files
+    # by comparing two commits.
+    #
+    # The return value is a hash with :created, :changed and :deleted keys.
+    #
+    def commit_status(base_commit, new_commit, ignore: [])
+      base_tree = get_object(base_commit.tree) unless base_commit.nil?
+      new_tree  = get_object(new_commit.tree)  unless new_commit.nil?
+
+      Utils::Status.compare_trees base_tree,
+                                  new_tree,
+                                  object_store,
+                                  ignore: ignore
+    end
+
+    ##
     # Enumerate all commits beginning with branch_head and ending
     # with the commits that have empty `parents` list.
     #
@@ -175,7 +191,7 @@ module VCSToolkit
     end
 
     ##
-    # Creates a label (named object) pointing to `reference_id`
+    # Create a label (named object) pointing to `reference_id`
     #
     # If the label already exists it is overriden.
     #
