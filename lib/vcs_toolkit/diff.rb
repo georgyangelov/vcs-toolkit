@@ -32,6 +32,24 @@ module VCSToolkit
       end.join ''
     end
 
+    ##
+    # Reconstruct the new sequence from the diff
+    #
+    def new_content(conflict_start='<<<', conflict_switch='>>>', conflict_end='===')
+      flat_map do |change|
+        if change.conflict?
+          version_one = change.diff_one.new_content(conflict_start, conflict_switch, conflict_end)
+          version_two = change.diff_two.new_content(conflict_start, conflict_switch, conflict_end)
+
+          [conflict_start] + version_one + [conflict_switch] + version_two + [conflict_end]
+        elsif change.deleting?
+          []
+        else
+          [change.new_element]
+        end
+      end
+    end
+
     def self.from_sequences(sequence_one, sequence_two)
       new ::Diff::LCS.sdiff(sequence_one, sequence_two)
     end

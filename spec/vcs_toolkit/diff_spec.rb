@@ -10,6 +10,7 @@ describe VCSToolkit::Diff do
     it { should respond_to :each         }
     it { should respond_to :has_changes? }
     it { should respond_to :to_s         }
+    it { should respond_to :new_content  }
   end
 
   let(:diff_with_addition)   { described_class.from_sequences(%w(a b c d), %w(a b c d e)) }
@@ -92,6 +93,38 @@ describe VCSToolkit::Diff do
       diff     = described_class.from_sequences(file_one, file_two).to_s
 
       expect(diff).to eq "one\n-two\n+two!\n-three\n+three :)\nfour\n+five...\n"
+    end
+  end
+
+  describe '#new_content' do
+    context 'with no changes' do
+      subject { diff_without_changes.new_content('|', '!', '|') }
+      it      { should eq %w(a b c d) }
+    end
+
+    context 'with addition' do
+      subject { diff_with_addition.new_content('|', '!', '|') }
+      it      { should eq %w(a b c d e) }
+    end
+
+    context 'with removal' do
+      subject { diff_with_removal.new_content('|', '!', '|') }
+      it      { should eq %w(a b d) }
+    end
+
+    context 'with changes' do
+      subject { diff_with_changes.new_content('|', '!', '|') }
+      it      { should eq %w(a c c d) }
+    end
+
+    context 'with conflicts' do
+      subject { VCSToolkit::Merge.three_way(%w(a b c d), %w(a f c d), %w(a e c d)).new_content }
+      it      { should eq %w(a <<< f >>> e === c d) }
+    end
+
+    context 'with conflicts format' do
+      subject { VCSToolkit::Merge.three_way(%w(a b c d), %w(a f c d), %w(a e c d)).new_content('(', '|', ')') }
+      it      { should eq %w(a ( f | e ) c d) }
     end
   end
 
