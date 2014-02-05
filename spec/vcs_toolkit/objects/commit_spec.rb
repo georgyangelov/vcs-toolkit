@@ -64,12 +64,12 @@ describe VCSToolkit::Objects::Commit do
 
   context 'with valid explicit id' do
     subject do
-      described_class.new message:   message,
-                          tree:      tree,
-                          parents:   parents,
-                          author:    author,
-                          date:      date,
-                          id:        commit.id
+      described_class.new message: message,
+                          tree:    tree,
+                          parents: parents,
+                          author:  author,
+                          date:    date,
+                          id:      commit.id
     end
 
     it 'does not raise an error' do
@@ -79,16 +79,86 @@ describe VCSToolkit::Objects::Commit do
 
   context 'with invalid explicit id' do
     subject do
-      described_class.new message:   message,
-                          tree:      tree,
-                          parents:   parents,
-                          author:    author,
-                          date:      date,
-                          id:        '1234'
+      described_class.new message: message,
+                          tree:    tree,
+                          parents: parents,
+                          author:  author,
+                          date:    date,
+                          id:      '1234'
     end
 
     it 'raises an InvalidObjectError' do
       expect { subject }.to raise_error(VCSToolkit::InvalidObjectError)
+    end
+  end
+
+  context 'with commit history' do
+    def create_commit(id: '', message: 'message', tree: 'tree', parents: [], author: '', date: '')
+      VCSToolkit::Objects::Commit.new message: message,
+                                      tree:    tree,
+                                      parents: parents,
+                                      author:  author,
+                                      date:    date,
+                                      id:      id,
+                                      verify_object_id: false
+    end
+
+    let(:commits) do
+      {
+        1 => create_commit(id: 1),
+        2 => create_commit(id: 2, parents: [1]),
+        3 => create_commit(id: 3, parents: [2]),
+        4 => create_commit(id: 4, parents: [2]),
+        5 => create_commit(id: 5, parents: [4]),
+        6 => create_commit(id: 6, parents: [4]),
+        7 => create_commit(id: 7, parents: [3]),
+        8 => create_commit(id: 8, parents: [3, 5]),
+        9 => create_commit(id: 9, parents: []),
+      }
+    end
+
+    describe '#history' do
+      it 'enumerates all commits in order' do
+        expect(commits[7].history(commits).to_a).to eq [
+          commits[7],
+          commits[3],
+          commits[2],
+          commits[1],
+        ]
+      end
+
+      it 'enumerates commits with multiple parents' do
+        history = commits[8].history(commits)
+        expect(history).to match_array [
+          commits[8],
+          commits[3],
+          commits[2],
+          commits[1],
+          commits[5],
+          commits[4],
+        ]
+        expect(history.first).to eq commits[8]
+      end
+
+      it 'yields the commits if a block is given' do
+        expect(commits[7].enum_for(:history, commits).to_a).to eq [
+          commits[7],
+          commits[3],
+          commits[2],
+          commits[1],
+        ]
+      end
+    end
+
+    describe '#common_ancestor' do
+      it 'returns one common ancestor' do
+        expect(commits[5].common_ancestor(commits[7], commits)).to eq commits[2]
+        expect(commits[8].common_ancestor(commits[7], commits)).to eq commits[3]
+      end
+
+      it 'returns nil if there is no common ancestor' do
+        expect(commits[9].common_ancestor(commits[8], commits)).to be_nil
+      end
     end
   end
 

@@ -120,24 +120,7 @@ module VCSToolkit
     def history
       return [] if branch_head.nil?
 
-      start_commit = get_object(branch_head)
-      commits      = {start_commit.id => start_commit}
-      commit_queue = [start_commit]
-
-      until commit_queue.empty?
-        commit = commit_queue.shift
-
-        commit.parents.each do |parent_id|
-          unless commits.key? parent_id
-            parent = get_object parent_id
-
-            commits[parent_id] = parent
-            commit_queue << parent
-          end
-        end
-      end
-
-      commits.values
+      get_object(branch_head).history(object_store)
     end
 
     ##

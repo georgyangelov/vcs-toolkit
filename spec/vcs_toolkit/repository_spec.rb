@@ -197,53 +197,15 @@ describe VCSToolkit::Repository do
   end
 
   describe '#history' do
-    it 'enumerates all commits in order' do
-      commits = [
-        repo.commit('commit 1', 'me', Date.new),
-        repo.commit('commit 2', 'me', Date.new),
-        repo.commit('commit 3', 'me', Date.new),
-      ]
-
-      expect(repo.history.to_a).to match_array commits.reverse
-    end
-
     it 'works with no commits' do
       expect(repo.history.to_a).to be_empty
     end
 
-    it 'enumerates commits with multiple parents' do
-      repo.commit('commit 1a', 'me', Date.new)
-      branch1 = repo.commit('commit 1b', 'me', Date.new)
+    it 'delegates to Commit#history' do
+      commit = repo.commit 'message', 'me', 'date'
 
-      repo.branch_head = nil
-      repo.commit('commit 2a', 'me', Date.new)
-      branch2 = repo.commit('commit 2b', 'me', Date.new)
-
-      repo.commit('commit 3', 'me', Date.new, parents: [branch1.id, branch2.id])
-
-      history = repo.history.map(&:message)
-      expect(history).to match_array [
-        'commit 1a',
-        'commit 1b',
-        'commit 2a',
-        'commit 2b',
-        'commit 3',
-      ]
-      expect(history.first).to eq 'commit 3'
-    end
-
-    it 'returns a commit only once' do
-      base    = repo.commit('commit 1',  'me', Date.new, parents: [])
-      branch1 = repo.commit('commit 2a', 'me', Date.new, parents: [base.id])
-      branch2 = repo.commit('commit 2b', 'me', Date.new, parents: [base.id])
-      merge   = repo.commit('commit 3',  'me', Date.new, parents: [branch1.id, branch2.id])
-
-      expect(repo.history.map(&:message)).to match_array [
-        'commit 1',
-        'commit 2a',
-        'commit 2b',
-        'commit 3',
-      ]
+      expect(commit).to receive(:history).with(repo.object_store).and_return(:history)
+      expect(repo.history).to eq :history
     end
   end
 
