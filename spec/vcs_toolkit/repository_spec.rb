@@ -260,7 +260,7 @@ describe VCSToolkit::Repository do
     end
   end
 
-  describe '#restore_file' do
+  describe '#restore' do
     it 'can restore a deleted file' do
       expect(tree).to receive(:find).with(repo.object_store, 'lib/vcs') { blob.id }
       blob.stub(:content)   { "file content" }
@@ -315,6 +315,101 @@ describe VCSToolkit::Repository do
 
       expect(staging_area.file? 'lib/vcs').to be_true
       expect(staging_area.fetch 'lib/vcs').to eq 'new file content'
+    end
+  end
+
+  describe '#merge' do
+    let(:staging_area) do
+      VCSToolkit::Utils::MemoryFileStore.new({})
+    end
+
+    let(:objects) do
+      {
+        0 => double(VCSToolkit::Objects::Blob,   id: 0, content: "1\n2\n3\n4"),
+        1 => double(VCSToolkit::Objects::Tree,   id: 1),
+        2 => double(VCSToolkit::Objects::Tree,   id: 2),
+        3 => double(VCSToolkit::Objects::Tree,   id: 3),
+        4 => double(VCSToolkit::Objects::Commit, id: 4, tree: 1),
+        5 => double(VCSToolkit::Objects::Commit, id: 5, tree: 2),
+        6 => double(VCSToolkit::Objects::Commit, id: 6, tree: 3),
+        7 => double(VCSToolkit::Objects::Blob,   id: 7, content: "1\n2\n4"),
+        8 => double(VCSToolkit::Objects::Blob,   id: 8, content: "1\n2\n3\n8"),
+      }
+    end
+
+    let(:diff) do
+      double(VCSToolkit::Diff)
+    end
+
+    subject(:repo) do
+      VCSToolkit::Repository.new objects, staging_area
+    end
+
+    before(:each) do
+      expect(objects[5]).to receive(:common_ancestor).
+                            with(objects[6], objects).
+                            and_return(objects[4])
+
+      objects[1].stub(:all_files) { {'file1' => 0} }
+      objects[2].stub(:all_files) { {'file1' => 7} }
+      objects[3].stub(:all_files) { {'file1' => 8} }
+
+      allow(diff).to receive(:new_content).
+                      with("<<<< 5\n", ">>>>> 6\n", "=====\n").
+                      and_return(["new\n", "file\n", "content"])
+    end
+
+    it 'uses VCSToolkit::Merge to merge files' do
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with(["1\n", "2\n", "3\n", "4"],
+                                        ["1\n", "2\n", "4"],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      repo.merge(objects[5], objects[6])
+    end
+
+    it 'stores modified files to the staging area' do
+      allow(VCSToolkit::Merge).to receive(:three_way).and_return(diff)
+
+      expect(staging_area).to receive(:store).
+                              with('file1', "new\nfile\ncontent")
+
+      repo.merge(objects[5], objects[6])
+    end
+
+    it 'removes deleted files from the staging area' do
+      empty_diff = double(VCSToolkit::Diff)
+      empty_diff.stub(:new_content) { [] }
+
+      expect(VCSToolkit::Merge).to receive(:three_way).and_return(empty_diff)
+      expect(staging_area).to receive(:delete_file).with('file1')
+
+      repo.merge(objects[5], objects[6])
+    end
+
+    it 'treats non-existing ancestor files as empty' do
+      objects[0].stub(:content) { '' }
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with([],
+                                        ["1\n", "2\n", "4"],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      repo.merge(objects[5], objects[6])
+    end
+
+    it 'treats non-existing commit files as empty' do
+      objects[7].stub(:content) { '' }
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with(["1\n", "2\n", "3\n", "4"],
+                                        [],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      repo.merge(objects[5], objects[6])
     end
   end
 

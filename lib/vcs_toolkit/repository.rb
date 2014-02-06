@@ -124,6 +124,33 @@ module VCSToolkit
     end
 
     ##
+    # Merge two commits and save the changes to the staging area.
+    #
+    def merge(commit_one, commit_two)
+      common_ancestor  = commit_one.common_ancestor(commit_two, object_store)
+      commit_one_files = Hash[get_object(commit_one.tree).all_files(object_store).to_a]
+      commit_two_files = Hash[get_object(commit_two.tree).all_files(object_store).to_a]
+      ancestor_files   = Hash[get_object(common_ancestor.tree).all_files(object_store).to_a]
+
+      all_files = commit_one_files.keys | commit_two_files.keys | ancestor_files.keys
+
+      all_files.each do |file|
+        ancestor = ancestor_files.key?(file)   ? get_object(ancestor_files[file]).content.lines   : []
+        file_one = commit_one_files.key?(file) ? get_object(commit_one_files[file]).content.lines : []
+        file_two = commit_two_files.key?(file) ? get_object(commit_two_files[file]).content.lines : []
+
+        diff    = VCSToolkit::Merge.three_way ancestor, file_one, file_two
+        content = diff.new_content("<<<< #{commit_one.id}\n", ">>>>> #{commit_two.id}\n", "=====\n")
+
+        if content.empty?
+          staging_area.delete_file file
+        else
+          staging_area.store file, content.join('')
+        end
+      end
+    end
+
+    ##
     # Return a list of changes between a file in the staging area
     # and a specific commit.
     #
