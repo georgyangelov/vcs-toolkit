@@ -179,7 +179,7 @@ module VCSToolkit
     def file_difference(file_path, commit)
       if staging_area.file? file_path
         file_lines = staging_area.fetch(file_path).lines
-        file_lines.last << "\n" unless file_lines.last.end_with? "\n"
+        file_lines.last << "\n" unless file_lines.last.nil? or file_lines.last.end_with? "\n"
       else
         file_lines = []
       end
