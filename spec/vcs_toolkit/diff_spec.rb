@@ -17,16 +17,29 @@ describe VCSToolkit::Diff do
   let(:diff_with_removal)    { described_class.from_sequences(%w(a b c d), %w(a b d))     }
   let(:diff_with_changes)    { described_class.from_sequences(%w(a b c d), %w(a c c d))   }
   let(:diff_without_changes) { described_class.from_sequences(%w(a b c d), %w(a b c d))   }
+  let(:diff_with_conflicts)  { described_class.new([double(VCSToolkit::Conflict, conflict?: true)])   }
 
   describe '#has_changes?' do
     context 'with no changes' do
       subject { diff_without_changes.has_changes? }
-      it      { should be true }
+      it      { should be_false }
     end
 
     context 'with changes' do
       subject { diff_with_changes.has_changes? }
-      it('should equal false') { should be false }
+      it('should equal true') { should be_true }
+    end
+  end
+
+  describe '#has_conflicts?' do
+    context 'with no conflicts' do
+      subject { diff_with_changes.has_conflicts? }
+      it      { should be_false }
+    end
+
+    context 'with conflicts' do
+      subject { diff_with_conflicts.has_conflicts? }
+      it('should equal true') { should be_true }
     end
   end
 

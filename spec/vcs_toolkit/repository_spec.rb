@@ -338,7 +338,10 @@ describe VCSToolkit::Repository do
     end
 
     let(:diff) do
-      double(VCSToolkit::Diff)
+      double(VCSToolkit::Diff).tap do |diff|
+        allow(diff).to receive(:has_conflicts?).and_return(false)
+        allow(diff).to receive(:has_changes?  ).and_return(true)
+      end
     end
 
     subject(:repo) do
@@ -380,7 +383,9 @@ describe VCSToolkit::Repository do
 
     it 'removes deleted files from the staging area' do
       empty_diff = double(VCSToolkit::Diff)
-      empty_diff.stub(:new_content) { [] }
+      empty_diff.stub(:has_conflicts?) { false }
+      empty_diff.stub(:has_changes?  ) { true  }
+      empty_diff.stub(:new_content)    { []    }
 
       expect(VCSToolkit::Merge).to receive(:three_way).and_return(empty_diff)
       expect(staging_area).to receive(:delete_file).with('file1')
@@ -424,6 +429,49 @@ describe VCSToolkit::Repository do
                                    and_return(diff)
 
       repo.merge(objects[5], objects[6])
+    end
+
+    it 'returns lists of merged and conflicted files' do
+      objects[1].stub(:all_files) { {'file1' => 0} }
+      objects[2].stub(:all_files) { {'file1' => 7, 'file2' => 7} }
+      objects[3].stub(:all_files) { {'file1' => 8, 'file2' => 8} }
+
+      conflict_diff = double(VCSToolkit::Diff)
+      conflict_diff.stub(:has_conflicts?) { true }
+      conflict_diff.stub(:has_changes?  ) { true }
+      conflict_diff.stub(:new_content)    {  []  }
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with(["1\n", "2\n", "3\n", "4"],
+                                        ["1\n", "2\n", "4"],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with([],
+                                        ["1\n", "2\n", "4"],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(conflict_diff)
+
+      files = repo.merge(objects[5], objects[6])
+
+      expect(files[:merged]).to     match_array ['file1']
+      expect(files[:conflicted]).to match_array ['file2']
+    end
+
+    it 'considers a file to be merged if it has changes' do
+      diff.stub(:has_changes?) { false }
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with(["1\n", "2\n", "3\n", "4"],
+                                        ["1\n", "2\n", "4"],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      files = repo.merge(objects[5], objects[6])
+
+      expect(files[:merged]).to     match_array []
+      expect(files[:conflicted]).to match_array []
     end
   end
 

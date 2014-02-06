@@ -9,7 +9,11 @@ module VCSToolkit
     end
 
     def has_changes?
-      @changes.all? { |change| change.unchanged? }
+      not @changes.all?(&:unchanged?)
+    end
+
+    def has_conflicts?
+      @changes.any?(&:conflict?)
     end
 
     def each(&block)

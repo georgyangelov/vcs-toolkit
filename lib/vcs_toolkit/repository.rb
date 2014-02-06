@@ -139,12 +139,22 @@ module VCSToolkit
 
       all_files = commit_one_files.keys | commit_two_files.keys | ancestor_files.keys
 
+      merged     = []
+      conflicted = []
+
       all_files.each do |file|
         ancestor = ancestor_files.key?(file)   ? get_object(ancestor_files[file]).content.lines   : []
         file_one = commit_one_files.key?(file) ? get_object(commit_one_files[file]).content.lines : []
         file_two = commit_two_files.key?(file) ? get_object(commit_two_files[file]).content.lines : []
 
-        diff    = VCSToolkit::Merge.three_way ancestor, file_one, file_two
+        diff = VCSToolkit::Merge.three_way ancestor, file_one, file_two
+
+        if diff.has_conflicts?
+          conflicted << file
+        elsif diff.has_changes?
+          merged << file
+        end
+
         content = diff.new_content("<<<< #{commit_one.id}\n", ">>>>> #{commit_two.id}\n", "=====\n")
 
         if content.empty?
@@ -153,6 +163,8 @@ module VCSToolkit
           staging_area.store file, content.join('')
         end
       end
+
+      {merged: merged, conflicted: conflicted}
     end
 
     ##
