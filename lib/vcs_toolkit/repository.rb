@@ -130,7 +130,12 @@ module VCSToolkit
       common_ancestor  = commit_one.common_ancestor(commit_two, object_store)
       commit_one_files = Hash[get_object(commit_one.tree).all_files(object_store).to_a]
       commit_two_files = Hash[get_object(commit_two.tree).all_files(object_store).to_a]
-      ancestor_files   = Hash[get_object(common_ancestor.tree).all_files(object_store).to_a]
+
+      if common_ancestor.nil?
+        ancestor_files = {}
+      else
+        ancestor_files = Hash[get_object(common_ancestor.tree).all_files(object_store).to_a]
+      end
 
       all_files = commit_one_files.keys | commit_two_files.keys | ancestor_files.keys
 

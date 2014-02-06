@@ -346,17 +346,17 @@ describe VCSToolkit::Repository do
     end
 
     before(:each) do
-      expect(objects[5]).to receive(:common_ancestor).
-                            with(objects[6], objects).
-                            and_return(objects[4])
+      allow(objects[5]).to receive(:common_ancestor).
+                           with(objects[6], objects).
+                           and_return(objects[4])
 
       objects[1].stub(:all_files) { {'file1' => 0} }
       objects[2].stub(:all_files) { {'file1' => 7} }
       objects[3].stub(:all_files) { {'file1' => 8} }
 
       allow(diff).to receive(:new_content).
-                      with("<<<< 5\n", ">>>>> 6\n", "=====\n").
-                      and_return(["new\n", "file\n", "content"])
+                     with("<<<< 5\n", ">>>>> 6\n", "=====\n").
+                     and_return(["new\n", "file\n", "content"])
     end
 
     it 'uses VCSToolkit::Merge to merge files' do
@@ -406,6 +406,20 @@ describe VCSToolkit::Repository do
       expect(VCSToolkit::Merge).to receive(:three_way).
                                    with(["1\n", "2\n", "3\n", "4"],
                                         [],
+                                        ["1\n", "2\n", "3\n", "8"]).
+                                   and_return(diff)
+
+      repo.merge(objects[5], objects[6])
+    end
+
+    it 'works with non-existing ancestor commit by assuming empty files' do
+      allow(objects[5]).to receive(:common_ancestor).
+                           with(objects[6], objects).
+                           and_return(nil)
+
+      expect(VCSToolkit::Merge).to receive(:three_way).
+                                   with([],
+                                        ["1\n", "2\n", "4"],
                                         ["1\n", "2\n", "3\n", "8"]).
                                    and_return(diff)
 
