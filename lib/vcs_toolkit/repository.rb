@@ -155,7 +155,7 @@ module VCSToolkit
           merged << file
         end
 
-        content = diff.new_content("<<<< #{commit_one.id}\n", ">>>>> #{commit_two.id}\n", "=====\n")
+        content = diff.new_content("<<<<< #{commit_one.id}\n", ">>>>> #{commit_two.id}\n", "=====\n")
 
         if content.empty?
           staging_area.delete_file file

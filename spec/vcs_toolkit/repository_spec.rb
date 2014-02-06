@@ -358,7 +358,7 @@ describe VCSToolkit::Repository do
       objects[3].stub(:all_files) { {'file1' => 8} }
 
       allow(diff).to receive(:new_content).
-                     with("<<<< 5\n", ">>>>> 6\n", "=====\n").
+                     with("<<<<< 5\n", ">>>>> 6\n", "=====\n").
                      and_return(["new\n", "file\n", "content"])
     end
 
