@@ -19,13 +19,35 @@ module VCSToolkit
               **context
       end
 
+      ##
+      # Enumerates all commits in the current commit's history.
+      # If a block is given each commit is yielded to it.
+      #
       def history(object_store)
+        history_diff(object_store) do |commit|
+          yield commit if block_given?
+
+          false
+        end
+      end
+
+      ##
+      # Enumerates commits in the current commit's history.
+      #
+      # Each commit is yielded and if the block result is a trueish
+      # value the commit's parents are not enumerated.
+      #
+      def history_diff(object_store)
         commits      = {id => self}
         commit_queue = [self]
 
         until commit_queue.empty?
           commit = commit_queue.shift
-          yield commit if block_given?
+
+          if yield commit
+            commits.delete commit.id
+            next
+          end
 
           commit.parents.each do |parent_id|
             unless commits.key? parent_id

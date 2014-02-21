@@ -2,74 +2,69 @@ module VCSToolkit
   module Utils
 
     class Sync
-      def initialize(local_store, local_label_name, remote_store, remote_label_name)
-        @local_store  = local_store
-        @local_label  = local_store.fetch local_label_name
-        @remote_store = remote_store
-        @remote_label = remote_store.fetch remote_label_name
+      def self.sync(*args)
+        new(*args).sync
+      end
+
+      def initialize(source_store, source_label_name, destination_store, destination_label_name)
+        @source_store      = source_store
+        @source_label      = source_store.fetch source_label_name
+        @destination_store = destination_store
+        @destination_label = destination_store.fetch destination_label_name
       end
 
       ##
-      # Pushes local history starting at `local_label` to
-      # `remote_store` starting at `remote_label`.
+      # Syncs source history starting at `source_label` to
+      # `destination_store` starting at `destination_label`.
       #
-      def push
-        raise 'Nothing to push' if @local_label.reference_id.nil?
+      def sync
+        raise 'Nothing to sync' if @source_label.reference_id.nil?
 
-        local_commit  = @local_store.fetch  @local_label.reference_id
-        local_history = local_commit.history(@local_store).to_a
+        destination_commit_id = @destination_label.reference_id
+        raise DivergedHistoriesError unless destination_commit_id.nil? or @source_store.key? destination_commit_id
 
-        unless @remote_label.reference_id.nil?
-          remote_commit = @remote_store.fetch @remote_label.reference_id
-
-          raise NonFastForwardMergeError unless local_history.include? remote_commit
-
-          # Because the remote head is on our side as well, we can actually
-          # use this commit as a reference of what is on the other end.
-          #
-          # This is due to the way the commit ids are generated (the hash of
-          # their content *and their parents*).
-          #
-          # Also every commit that is in the remote history is also in ours.
-          remote_history = remote_commit.history(@local_store).to_a
-        else
-          remote_history = []
+        source_commit   = @source_store.fetch @source_label.reference_id
+        commits_to_push = source_commit.history_diff(@source_store) do |commit|
+          # Do not follow parent references for commits
+          # that are already on the remote.
+          @destination_store.key? commit.id
         end
 
-        commits_to_push = local_history - remote_history
-        commits_to_push.each { |commit| push_commit commit }
+        commits_to_push.each do |commit|
+          transfer_commit commit
+        end
 
-        # Now that everything is pushed change the remote label
-        @remote_label.reference_id = local_commit.id
-        @remote_store.store @remote_label.id, @remote_label
+        # Now that every object is transferred change the destination label
+        @destination_label.reference_id = source_commit.id
+        @destination_store.store @destination_label.id, @destination_label
       end
 
       private
 
-      def push_commit(commit)
-        push_tree @local_store.fetch(commit.tree)
-        @remote_store.store commit.id, commit
+      def transfer_commit(commit)
+        transfer_tree @source_store.fetch(commit.tree)
+        @destination_store.store commit.id, commit
       end
 
-      def push_tree(tree)
-        # Push all blobs
+      def transfer_tree(tree)
+        # Transfer all blobs
         tree.files.each do |_, blob_id|
-          blob = @local_store.fetch blob_id
-          @remote_store.store blob.id, blob
+          blob = @source_store.fetch blob_id
+          @destination_store.store blob.id, blob
         end
 
-        # Push all nested trees
+        # Transfer all nested trees
         tree.trees.each do |_, tree_id|
-          nested_tree = @local_store.fetch tree_id
-          push_tree nested_tree
+          nested_tree = @source_store.fetch tree_id
+          transfer_tree nested_tree
         end
 
-        @remote_store.store tree.id, tree
+        @destination_store.store tree.id, tree
       end
     end
 
-    class NonFastForwardMergeError < StandardError
-      def initialize(message='The local and remote repository have diverged')
+    class DivergedHistoriesError < VCSToolkitError
+      def initialize(message='The local and remote histories have diverged')
         super
       end
     end
