@@ -158,7 +158,7 @@ module VCSToolkit
         content = diff.new_content("<<<<< #{commit_one.id}\n", ">>>>> #{commit_two.id}\n", "=====\n")
 
         if content.empty?
-          staging_area.delete_file file
+          staging_area.delete_file file if staging_area.file? file
         else
           staging_area.store file, content.join('')
         end
